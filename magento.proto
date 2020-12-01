@@ -1,0 +1,151 @@
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+syntax = "proto3";
+
+package magento.pricingStorefrontApi.proto;
+
+option php_metadata_namespace = "Magento\\PricingStorefrontApi\\Metadata";
+
+service PriceBookService {
+  // Build Price Book Id based on Scopes.
+  rpc buildPriceBookId(PriceBookScopeRequest) returns (PriceBookResponse);
+
+  // Return existing Price Book Id or null if not found.
+  rpc findPriceBook(PriceBookScopeRequest) returns (PriceBookResponse);
+
+  // Creates a new price book. All fields are required. Throws invalid argument error if some argument is missing
+  rpc createPriceBook(PriceBookRequest) returns (PriceBookCreateResponse);
+
+  // Delete a price book by price book id. Delete all assigned prices to price book.
+  rpc deletePriceBook(PriceBookDeleteRequest) returns (PriceBookDeleteResponse);
+
+  // Assign prices of product or custom option to Price Book
+  rpc assignPrices(AssignPricesRequest) returns (PriceBookAssignPricesResponse);
+
+  // Unassign prices of product or custom option from Price Book
+  rpc unassignPrices(UnassignPricesRequest) returns (PriceBookUnassignPricesResponse);
+
+  // Get product prices in given Price Book scope
+  rpc getPrices(GetPricesRequest) returns (GetPricesOutput);
+
+  // Get product prices in given Price Book scope with qty > 1 only
+  rpc getTierPrices(GetPricesRequest) returns (GetPricesOutput);
+}
+
+// List of scopes that represent price dimension of the final price
+// Implementation notice: to support existing Magento use-cases price-book stored in a "flat" way as intersection between different scopes, e.g. "website{1}-customer_group{2}" or "website{1}"
+message Scope {
+  repeated string website = 1;
+  repeated string customer_group = 2;
+}
+
+
+message PriceBook {
+  // Price book ID. Can be requested via findPriceBook service
+  string id = 1;
+
+  // Price book name (e.g. "10% off on selected products")
+  string name = 2;
+
+  // Parent Price Book Id.
+  // Used to build fallback system and find price in parent price book if price not present in requested price book
+  string parent_id = 3;
+
+  // A combination of scopes must be unique.
+  // Error will be returned in case when combination is occupied by another price book.
+  Scope scope = 4;
+}
+
+message ProductPrice {
+  // Represent Product ID or Option ID like custom option, downloadable link, etc.
+  // E.g. option/<product_id>/<custom_option_id>
+  string entity_id = 2;
+
+  // Minimum product price
+  Price minimum_price = 3;
+
+  // Maximum product price used for complex products or products with custom options
+  Price maximum_price = 4;
+
+  // Represent price for given quantity. If not specified assumes it as "1"
+  float qty = 5;
+}
+
+message Price {
+  // Price without applied discounts. E.g. regular price of variation for Configurable product or regular price for Simple product
+  float regular = 1;
+  // Final price with applied discounts. E.g. final price of variation for Configurable product
+  float final = 2;
+}
+
+message PriceBookScopeRequest {
+  Scope scopes = 1;
+}
+
+message PriceBookResponse {
+  PriceBook price_book = 1;
+  Status status = 2;
+}
+
+message PriceBookRequest {
+  PriceBook price_book = 1;
+}
+
+message GetPricesRequest {
+  // Price book id
+  string price_book_id = 1;
+
+  // List of Product IDs or Custom Option IDs
+  repeated string ids = 2;
+}
+
+// Return prices in given Price Book scope
+message GetPricesOutput {
+  repeated ProductPrice prices = 1;
+}
+
+message AssignPricesRequest {
+  repeated ProductPrice prices = 1;
+  string price_book_id = 2;
+}
+
+message UnassignPricesRequest {
+  repeated string ids = 1;
+  string price_book_id = 2;
+}
+
+message PriceBookDeleteRequest {
+  string id = 1;
+}
+
+message PriceBookCreateResponse {
+  PriceBook price_book = 1;
+  Status status = 2;
+}
+
+message PriceBookDeleteResponse {
+  Status status = 1;
+}
+
+message PriceBookAssignPricesResponse {
+  Status status = 1;
+}
+
+message PriceBookUnassignPricesResponse {
+  Status status = 1;
+}
+
+// Status of operation
+message Status {
+  // todo: add support of enum type
+  string code = 1;
+  string message = 2;
+}
+
+// TODO: add support of enum type: https://jira.corp.magento.com/browse/SFAPP-168
+//enum StatusCode {
+//  success = 0;
+//  error = 1;
+//}
