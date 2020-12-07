@@ -23,27 +23,6 @@ class PriceBookServiceClient extends \Grpc\BaseStub
     }
 
     /**
-     * Build Price Book Id based on Scopes.
-     * @param \Magento\PricingStorefrontApi\Proto\PriceBookScopeRequest $argument input argument
-     * @param array $metadata metadata
-     * @param array $options call options
-     */
-    public function buildPriceBookId(
-        \Magento\PricingStorefrontApi\Proto\PriceBookScopeRequest $argument,
-        $metadata = [],
-        $options = []
-    )
-    {
-        return $this->_simpleRequest(
-            '/magento.pricingStorefrontApi.proto.PriceBookService/buildPriceBookId',
-            $argument,
-            ['\Magento\PricingStorefrontApi\Proto\PriceBookResponse', 'decode'],
-            $metadata,
-            $options
-        );
-    }
-
-    /**
      * Return existing Price Book Id or null if not found.
      * @param \Magento\PricingStorefrontApi\Proto\PriceBookScopeRequest $argument input argument
      * @param array $metadata metadata
@@ -66,12 +45,12 @@ class PriceBookServiceClient extends \Grpc\BaseStub
 
     /**
      * Creates a new price book. All fields are required. Throws invalid argument error if some argument is missing
-     * @param \Magento\PricingStorefrontApi\Proto\PriceBookRequest $argument input argument
+     * @param \Magento\PricingStorefrontApi\Proto\PriceBookCreateRequest $argument input argument
      * @param array $metadata metadata
      * @param array $options call options
      */
     public function createPriceBook(
-        \Magento\PricingStorefrontApi\Proto\PriceBookRequest $argument,
+        \Magento\PricingStorefrontApi\Proto\PriceBookCreateRequest $argument,
         $metadata = [],
         $options = []
     )

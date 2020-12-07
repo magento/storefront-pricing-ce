@@ -32,13 +32,6 @@ class PriceBook extends \Google\Protobuf\Internal\Message
      * Generated from protobuf field <code>string parent_id = 3;</code>
      */
     protected $parent_id = '';
-    /**
-     * A combination of scopes must be unique.
-     * Error will be returned in case when combination is occupied by another price book.
-     *
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 4;</code>
-     */
-    protected $scope = null;
 
     /**
      * Constructor.
@@ -53,9 +46,6 @@ class PriceBook extends \Google\Protobuf\Internal\Message
      *     @type string $parent_id
      *           Parent Price Book Id.
      *           Used to build fallback system and find price in parent price book if price not present in requested price book
-     *     @type \Magento\PricingStorefrontApi\Proto\Scope $scope
-     *           A combination of scopes must be unique.
-     *           Error will be returned in case when combination is occupied by another price book.
      * }
      */
     public function __construct($data = null)
@@ -140,34 +130,6 @@ class PriceBook extends \Google\Protobuf\Internal\Message
     {
         GPBUtil::checkString($var, true);
         $this->parent_id = $var;
-
-        return $this;
-    }
-
-    /**
-     * A combination of scopes must be unique.
-     * Error will be returned in case when combination is occupied by another price book.
-     *
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 4;</code>
-     * @return \Magento\PricingStorefrontApi\Proto\Scope
-     */
-    public function getScope()
-    {
-        return $this->scope;
-    }
-
-    /**
-     * A combination of scopes must be unique.
-     * Error will be returned in case when combination is occupied by another price book.
-     *
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 4;</code>
-     * @param \Magento\PricingStorefrontApi\Proto\Scope $var
-     * @return $this
-     */
-    public function setScope($var)
-    {
-        GPBUtil::checkMessage($var, \Magento\PricingStorefrontApi\Proto\Scope::class);
-        $this->scope = $var;
 
         return $this;
     }

@@ -34,11 +34,6 @@ final class PriceBook implements PriceBookInterface
      * @var string
      */
     private $parentId;
-
-    /**
-     * @var \Magento\PricingStorefrontApi\Api\Data\ScopeInterface
-     */
-    private $scope;
     
     /**
      * @inheritdoc
@@ -101,26 +96,5 @@ final class PriceBook implements PriceBookInterface
     public function setParentId(string $value): void
     {
         $this->parentId = $value;
-    }
-    
-    /**
-     * @inheritdoc
-     *
-     * @return \Magento\PricingStorefrontApi\Api\Data\ScopeInterface|null
-     */
-    public function getScope(): ?\Magento\PricingStorefrontApi\Api\Data\ScopeInterface
-    {
-        return $this->scope;
-    }
-    
-    /**
-     * @inheritdoc
-     *
-     * @param \Magento\PricingStorefrontApi\Api\Data\ScopeInterface $value
-     * @return void
-     */
-    public function setScope(\Magento\PricingStorefrontApi\Api\Data\ScopeInterface $value): void
-    {
-        $this->scope = $value;
     }
 }

@@ -9,14 +9,11 @@ package magento.pricingStorefrontApi.proto;
 option php_metadata_namespace = "Magento\\PricingStorefrontApi\\Metadata";
 
 service PriceBookService {
-  // Build Price Book Id based on Scopes.
-  rpc buildPriceBookId(PriceBookScopeRequest) returns (PriceBookResponse);
-
   // Return existing Price Book Id or null if not found.
   rpc findPriceBook(PriceBookScopeRequest) returns (PriceBookResponse);
 
   // Creates a new price book. All fields are required. Throws invalid argument error if some argument is missing
-  rpc createPriceBook(PriceBookRequest) returns (PriceBookCreateResponse);
+  rpc createPriceBook(PriceBookCreateRequest) returns (PriceBookCreateResponse);
 
   // Delete a price book by price book id. Delete all assigned prices to price book.
   rpc deletePriceBook(PriceBookDeleteRequest) returns (PriceBookDeleteResponse);
@@ -41,6 +38,19 @@ message Scope {
   repeated string customer_group = 2;
 }
 
+// Create Price Book request
+message PriceBookCreateRequest {
+  // Price book name (e.g. "10% off on selected products")
+  string name = 1;
+
+  // Parent Price Book Id.
+  // Used to build fallback system and find price in parent price book if price not present in requested price book
+  string parent_id = 2;
+
+  // A combination of scopes must be unique.
+  // Error will be returned in case when combination is occupied by another price book.
+  Scope scope = 3;
+}
 
 message PriceBook {
   // Price book ID. Can be requested via findPriceBook service
@@ -52,10 +62,6 @@ message PriceBook {
   // Parent Price Book Id.
   // Used to build fallback system and find price in parent price book if price not present in requested price book
   string parent_id = 3;
-
-  // A combination of scopes must be unique.
-  // Error will be returned in case when combination is occupied by another price book.
-  Scope scope = 4;
 }
 
 message ProductPrice {
@@ -87,10 +93,6 @@ message PriceBookScopeRequest {
 message PriceBookResponse {
   PriceBook price_book = 1;
   Status status = 2;
-}
-
-message PriceBookRequest {
-  PriceBook price_book = 1;
 }
 
 message GetPricesRequest {
