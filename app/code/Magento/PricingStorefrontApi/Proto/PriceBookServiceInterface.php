@@ -18,25 +18,16 @@ interface PriceBookServiceInterface extends GRPC\ServiceInterface
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function buildPriceBookId(GRPC\ContextInterface $ctx, PriceBookScopeRequest $in): PriceBookResponse;
-
-    /**
-    * @param GRPC\ContextInterface $ctx
-    * @param PriceBookScopeRequest $in
-    * @return PriceBookResponse
-    *
-    * @throws GRPC\Exception\InvokeException
-    */
     public function findPriceBook(GRPC\ContextInterface $ctx, PriceBookScopeRequest $in): PriceBookResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx
-    * @param PriceBookRequest $in
+    * @param PriceBookCreateRequest $in
     * @return PriceBookCreateResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function createPriceBook(GRPC\ContextInterface $ctx, PriceBookRequest $in): PriceBookCreateResponse;
+    public function createPriceBook(GRPC\ContextInterface $ctx, PriceBookCreateRequest $in): PriceBookCreateResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx
