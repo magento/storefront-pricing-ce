@@ -50,10 +50,6 @@ final class PriceBookArrayMapper
         $result["id"] = $dto->getId();
         $result["name"] = $dto->getName();
         $result["parent_id"] = $dto->getParentId();
-        if ($dto->getScope() !== null) {
-            $result["scope"] = $this->objectManager->get(\Magento\PricingStorefrontApi\Api\Data\ScopeArrayMapper::class)
-                ->convertToArray($dto->getScope());
-        }
         return $result;
     }
 }

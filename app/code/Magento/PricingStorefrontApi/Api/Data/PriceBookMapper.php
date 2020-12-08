@@ -94,14 +94,6 @@ final class PriceBookMapper
             case "parent_id":
                 $dto->setParentId((string) $value);
                 break;
-            case "scope":
-                $dto->setScope(
-                    $this->objectManager
-                       ->create(\Magento\PricingStorefrontApi\Api\Data\ScopeMapper::class)
-                       ->setData($value)
-                       ->build()
-                );
-                break;
         }
     }
 }
