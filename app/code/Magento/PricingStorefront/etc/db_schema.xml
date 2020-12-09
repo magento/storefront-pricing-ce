@@ -9,21 +9,22 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
     <table name="price_book" resource="default" engine="innodb"
            comment="Price Book">
-        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Price Book ID"/>
-        <column xsi:type="int" name="parent_id" unsigned="true" nullable="true" identity="false" comment="Parent Price Book ID"/>
+        <column xsi:type="int" name="row_id" unsigned="true" nullable="false" identity="true" comment="Row ID"/>
+        <column xsi:type="text" name="id" unsigned="true" nullable="true" identity="true" comment="Price Book ID"/>
+        <column xsi:type="text" name="parent_id" unsigned="true" nullable="true" identity="false" comment="Parent Price Book ID"/>
         <column xsi:type="text" name="name" nullable="false" comment="Price Book Name"/>
         <column xsi:type="text" name="customer_group_ids" nullable="true"  comment="Customer Group IDs"/>
         <column xsi:type="text" name="website_ids" nullable="true" comment="Website IDs"/>
         <!-- @TODO create unique index by group and website?? -->
         <constraint xsi:type="primary" referenceId="PRIMARY">
-            <column name="id"/>
+            <column name="row_id"/>
         </constraint>
     </table>
     <table name="prices" resource="default" engine="innodb"
            comment="Price Table">
         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Price ID"/>
         <column xsi:type="text" name="product_id" nullable="false" comment="Product ID"/>
-        <column xsi:type="int" name="pricebook_id" unsigned="true" nullable="false" identity="false" comment="Price Book ID"/>
+        <column xsi:type="int" name="pricebook_row_id" unsigned="true" nullable="false" identity="false" comment="Price Book ID"/>
         <column xsi:type="decimal" name="regular_price" scale="6" precision="20" unsigned="false" nullable="true"
                 comment="Regular Price"/>
         <column xsi:type="decimal" name="price" scale="6" precision="20" unsigned="false" nullable="true"
@@ -38,7 +39,7 @@
             <column name="id"/>
         </constraint>
         <constraint xsi:type="foreign" referenceId="PRICE_PRICEBOOK_ID_PRICE_BOOK_ID"
-                    table="prices" column="pricebook_id" referenceTable="price_book"
-                    referenceColumn="id" onDelete="CASCADE"/>
+                    table="prices" column="pricebook_row_id" referenceTable="price_book"
+                    referenceColumn="row_id" onDelete="CASCADE"/>
     </table>
 </schema>

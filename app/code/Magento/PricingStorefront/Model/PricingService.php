@@ -9,22 +9,25 @@ namespace Magento\PricingStorefront\Model;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PricingStorefrontApi\Api\Data\AssignPricesRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFatory;
+use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFactory;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputInterface;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseFactory;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponse;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseFactory;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\StatusFactory;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
-use Magento\PricingStorefrontApi\Api\Data\StatusFactory;
 
 use Psr\Log\LoggerInterface;
 
@@ -69,13 +72,25 @@ class PricingService implements PriceBookServiceServerInterface
     private $logger;
 
     /**
-     * @param PriceBookAssignPricesResponseFactory $assignPricesResponseFactory
+     * @var PriceBookCreateResponseMapper
+     */
+    private $priceBookCreateResponseMapper;
+
+    /**
+     * @var PriceBookResponseMapper
+     */
+    private $priceBookResponseMapper;
+
+    /**
+     * @param PriceBookAssignPricesResponseFactory   $assignPricesResponseFactory
      * @param PriceBookUnassignPricesResponseFactory $priceBookUnassignPricesResponseFactory
-     * @param StatusFactory $statusFactory
-     * @param PriceManagement $priceManagement
-     * @param PriceBookRepository $priceBookRepository
-     * @param GetPricesOutputFactory $getPricesOutputFactory
-     * @param LoggerInterface $logger
+     * @param StatusFactory                          $statusFactory
+     * @param PriceManagement                        $priceManagement
+     * @param PriceBookRepository                    $priceBookRepository
+     * @param GetPricesOutputFactory                 $getPricesOutputFactory
+     * @param PriceBookCreateResponseMapper          $priceBookCreateResponseMapper
+     * @param PriceBookResponseMapper                $priceBookResponseMapper
+     * @param LoggerInterface                        $logger
      */
     public function __construct(
         PriceBookAssignPricesResponseFactory $assignPricesResponseFactory,
@@ -83,7 +98,9 @@ class PricingService implements PriceBookServiceServerInterface
         StatusFactory $statusFactory,
         PriceManagement $priceManagement,
         PriceBookRepository $priceBookRepository,
-        GetPricesOutputFactory $getPricesOutputFactory,
+        \Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFactory $getPricesOutputFactory,
+        PriceBookCreateResponseMapper $priceBookCreateResponseMapper,
+        PriceBookResponseMapper $priceBookResponseMapper,
         LoggerInterface $logger
     ) {
         $this->assignPricesResponseFactory = $assignPricesResponseFactory;
@@ -93,21 +110,47 @@ class PricingService implements PriceBookServiceServerInterface
         $this->priceBookRepository = $priceBookRepository;
         $this->getPricesOutputFactory = $getPricesOutputFactory;
         $this->logger = $logger;
-    }
-
-    public function buildPriceBookId(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
-    {
-        // TODO: Implement buildPriceBookId() method.
+        $this->priceBookCreateResponseMapper = $priceBookCreateResponseMapper;
+        $this->priceBookResponseMapper = $priceBookResponseMapper;
     }
 
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
     {
-        // TODO: Implement findPriceBook() method.
+        try {
+            $this->validatePriceBookRequest($request);
+            $priceBook = $this->priceBookRepository->getByScope($request->getScope());
+            return $this->priceBookResponseMapper->setData(
+                [
+                    'price_book' => $priceBook,
+                    'status' => [
+                        'code' => '0',
+                        'message' => 'Success'
+                    ]
+                ]
+            )->build();
+        } catch (\ErrorException|\InvalidArgumentException $e) {
+            return $this->priceBookResponseMapper->setData(
+                [
+                    'status' => [
+                        'code' => '1',
+                        'message' => $e->getMessage()
+                    ]
+                ]
+            )->build();
+        }
     }
 
-    public function createPriceBook(PriceBookRequestInterface $request): PriceBookCreateResponseInterface
+    public function createPriceBook(PriceBookCreateRequestInterface $request): PriceBookCreateResponseInterface
     {
-        // TODO: Implement createPriceBook() method.
+        try {
+            $this->validatePriceBookRequest($request);
+            $id = $this->priceBookRepository->createPriceBook($request);
+            $priceBook = $this->priceBookRepository->getById($id);
+
+            return $this->buildPriceBookResponse($priceBook);
+        } catch (\ErrorException|\InvalidArgumentException $e) {
+            return $this->buildPriceBookResponse(null, $e->getMessage());
+        }
     }
 
     public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookDeleteResponseInterface
@@ -184,13 +227,63 @@ class PricingService implements PriceBookServiceServerInterface
         $priceBookId = $request->getPriceBookId();
         $productIds = $request->getIds();
 
-        
-
         return $response;
     }
 
     public function getTierPrices(GetPricesRequestInterface $request): GetPricesOutputInterface
     {
         // TODO: Implement getTierPrices() method.
+    }
+
+    /**
+     * PriceBook create request validation
+     *
+     * @param PriceBookCreateRequestInterface|PriceBookScopeRequestInterface $request
+     * @throws \InvalidArgumentException
+     */
+    private function validatePriceBookRequest($request) :void
+    {
+        if ($request instanceof PriceBookCreateRequestInterface) {
+            if (empty($request->getName())) {
+                throw new \InvalidArgumentException('Price Book name is missing in the request');
+            }
+            if (empty($request->getParentId())) {
+                throw new \InvalidArgumentException('Price Book parent id is missing in the request');
+            }
+        }
+        if (empty($request->getScope()) ||
+            empty($request->getScope()->getWebsite()) ||
+            empty($request->getScope()->getCustomerGroup())) {
+            throw new \InvalidArgumentException('Price Book scope is missing in the request or has empty data');
+        }
+    }
+
+    /**
+     * Builds response object for PriceBook requests
+     *
+     * @param array  $priceBook
+     * @param string $exceptionMessage
+     * @return PriceBookCreateResponse
+     */
+    private function buildPriceBookResponse($priceBook = [], $exceptionMessage = ''): PriceBookCreateResponse
+    {
+        if (empty($priceBook)) {
+            $data = [
+                'status' => [
+                    'code' => '1',
+                    'message' => $exceptionMessage
+                ]
+            ];
+        } else {
+            $data = [
+                'price_book' => $priceBook,
+                'status' => [
+                    'code' => '0',
+                    'message' => 'Success'
+                ]
+            ];
+        }
+
+        return $this->priceBookCreateResponseMapper->setData($data)->build();
     }
 }

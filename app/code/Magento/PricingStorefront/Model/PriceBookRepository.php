@@ -9,12 +9,14 @@ namespace Magento\PricingStorefront\Model;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
+use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
 class PriceBookRepository
 {
     const PRICES_BOOK_TABLE_NAME = 'price_book';
-    const DEFAULT_PRICES_BOOK_NAME = 'default';
+    const DEFAULT_PRICES_BOOK_ID = 'default';
 
     /**
      * @var ResourceConnection
@@ -27,21 +29,29 @@ class PriceBookRepository
     private $logger;
 
     /**
+     * @var PriceBookIdBuilderInterface
+     */
+    private $priceBookIdBuilder;
+
+    /**
      * @param ResourceConnection $resourceConnection
+     * @param PriceBookIdBuilderInterface $priceBookIdBuilder
      * @param LoggerInterface $logger
      */
     public function __construct(
         ResourceConnection $resourceConnection,
+        PriceBookIdBuilderInterface $priceBookIdBuilder,
         LoggerInterface $logger
     ) {
         $this->resourceConnection = $resourceConnection;
         $this->logger = $logger;
+        $this->priceBookIdBuilder = $priceBookIdBuilder;
     }
 
     /**
      * Get price book by id
      *
-     * @param string $id
+     * @param string|null $id
      * @return array
      * @throws NoSuchEntityException
      */
@@ -49,13 +59,8 @@ class PriceBookRepository
     {
         $connection = $this->resourceConnection->getConnection();
         $select = $connection->select()
-            ->from($this->getPriceBookTable());
-
-        if ($id) {
-            $select->where('id = ?', $id);
-        } else {
-            $select->where('name = ?', self::DEFAULT_PRICES_BOOK_NAME);
-        }
+            ->from($this->getPriceBookTable())
+            ->where('id = ?', $id ?? self::DEFAULT_PRICES_BOOK_ID);
 
         $priceBook = $connection->fetchRow($select);
 
@@ -67,6 +72,15 @@ class PriceBookRepository
     }
 
     /**
+     * @param ScopeInterface $scope
+     * @return array
+     */
+    public function getByScope(ScopeInterface $scope) : array
+    {
+        return $this->getById($this->priceBookIdBuilder->build($scope));
+    }
+
+    /**
      * Get price book table name.
      *
      * @return string
@@ -74,5 +88,57 @@ class PriceBookRepository
     private function getPriceBookTable(): string
     {
         return $this->resourceConnection->getTableName(self::PRICES_BOOK_TABLE_NAME);
+    }
+
+    /**
+     * Create price book and save to DB
+     *
+     * @param PriceBookCreateRequestInterface $request
+     * @return string
+     * @throws \ErrorException
+     */
+    public function createPriceBook(PriceBookCreateRequestInterface $request) :string
+    {
+        $priceBookId = $this->priceBookIdBuilder->build($request->getScope());
+        $this->validatePriceBookIdUnique($priceBookId);
+
+        $connection = $this->resourceConnection->getConnection();
+        $result = $connection->insert(
+            $this->getPriceBookTable(),
+            [
+                'id' => $priceBookId,
+                'name' => $request->getName(),
+                'parent_id' => $request->getParentId(),
+                'website_ids' => implode(',', $request->getScope()->getWebsite()),
+                'customer_group_ids' => implode(',', $request->getScope()->getCustomerGroup())
+            ]
+        );
+        if ($result) {
+            return $priceBookId;
+        }
+    }
+
+    /**
+     * Checks if it's only record of Price Book with given id exists
+     *
+     * @param string $id
+     * @throws \ErrorException
+     */
+    private function validatePriceBookIdUnique(string $id) :void
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $query = $connection->select()
+            ->from($this->getPriceBookTable())
+            ->where('id = ?', $id);
+
+        $priceBook = $connection->fetchRow($query);
+        if ($priceBook) {
+            throw new \ErrorException(
+                sprintf(
+                    'Can\'t create Price Book. The record with id=%s is already exists in database',
+                    $id
+                )
+            );
+        }
     }
 }
