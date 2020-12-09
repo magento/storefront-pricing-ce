@@ -13,16 +13,16 @@ service PriceBookService {
   rpc findPriceBook(PriceBookScopeRequest) returns (PriceBookResponse);
 
   // Creates a new price book. All fields are required. Throws invalid argument error if some argument is missing
-  rpc createPriceBook(PriceBookCreateRequest) returns (PriceBookCreateResponse);
+  rpc createPriceBook(PriceBookCreateRequest) returns (PriceBookResponse);
 
   // Delete a price book by price book id. Delete all assigned prices to price book.
-  rpc deletePriceBook(PriceBookDeleteRequest) returns (PriceBookDeleteResponse);
+  rpc deletePriceBook(PriceBookDeleteRequest) returns (PriceBookStatusResponse);
 
   // Assign prices of product or custom option to Price Book
-  rpc assignPrices(AssignPricesRequest) returns (PriceBookAssignPricesResponse);
+  rpc assignPrices(AssignPricesRequest) returns (PriceBookStatusResponse);
 
   // Unassign prices of product or custom option from Price Book
-  rpc unassignPrices(UnassignPricesRequest) returns (PriceBookUnassignPricesResponse);
+  rpc unassignPrices(UnassignPricesRequest) returns (PriceBookStatusResponse);
 
   // Get product prices in given Price Book scope
   rpc getPrices(GetPricesRequest) returns (GetPricesOutput);
@@ -87,7 +87,7 @@ message Price {
 }
 
 message PriceBookScopeRequest {
-  Scope scopes = 1;
+  Scope scope = 1;
 }
 
 message PriceBookResponse {
@@ -122,20 +122,7 @@ message PriceBookDeleteRequest {
   string id = 1;
 }
 
-message PriceBookCreateResponse {
-  PriceBook price_book = 1;
-  Status status = 2;
-}
-
-message PriceBookDeleteResponse {
-  Status status = 1;
-}
-
-message PriceBookAssignPricesResponse {
-  Status status = 1;
-}
-
-message PriceBookUnassignPricesResponse {
+message PriceBookStatusResponse {
   Status status = 1;
 }
 
