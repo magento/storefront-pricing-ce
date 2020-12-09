@@ -14,9 +14,9 @@ use Google\Protobuf\Internal\GPBUtil;
 class PriceBookScopeRequest extends \Google\Protobuf\Internal\Message
 {
     /**
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scopes = 1;</code>
+     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 1;</code>
      */
-    protected $scopes = null;
+    protected $scope = null;
 
     /**
      * Constructor.
@@ -24,7 +24,7 @@ class PriceBookScopeRequest extends \Google\Protobuf\Internal\Message
      * @param array $data {
      *     Optional. Data for populating the Message object.
      *
-     *     @type \Magento\PricingStorefrontApi\Proto\Scope $scopes
+     *     @type \Magento\PricingStorefrontApi\Proto\Scope $scope
      * }
      */
     public function __construct($data = null)
@@ -34,23 +34,23 @@ class PriceBookScopeRequest extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scopes = 1;</code>
+     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 1;</code>
      * @return \Magento\PricingStorefrontApi\Proto\Scope
      */
-    public function getScopes()
+    public function getScope()
     {
-        return $this->scopes;
+        return $this->scope;
     }
 
     /**
-     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scopes = 1;</code>
+     * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Scope scope = 1;</code>
      * @param \Magento\PricingStorefrontApi\Proto\Scope $var
      * @return $this
      */
-    public function setScopes($var)
+    public function setScope($var)
     {
         GPBUtil::checkMessage($var, \Magento\PricingStorefrontApi\Proto\Scope::class);
-        $this->scopes = $var;
+        $this->scope = $var;
 
         return $this;
     }

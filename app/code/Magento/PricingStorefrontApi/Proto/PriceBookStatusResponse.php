@@ -9,9 +9,9 @@ use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
- * Generated from protobuf message <code>magento.pricingStorefrontApi.proto.PriceBookUnassignPricesResponse</code>
+ * Generated from protobuf message <code>magento.pricingStorefrontApi.proto.PriceBookStatusResponse</code>
  */
-class PriceBookUnassignPricesResponse extends \Google\Protobuf\Internal\Message
+class PriceBookStatusResponse extends \Google\Protobuf\Internal\Message
 {
     /**
      * Generated from protobuf field <code>.magento.pricingStorefrontApi.proto.Status status = 1;</code>
