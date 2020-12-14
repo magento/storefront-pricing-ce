@@ -20,6 +20,7 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
@@ -80,6 +81,10 @@ class PricingService implements PriceBookServiceServerInterface
      * @var PriceBookResponseMapper
      */
     private $priceBookResponseMapper;
+    /**
+     * @var PriceBookDeleteResponseMapper
+     */
+    private PriceBookDeleteResponseMapper $priceBookDeleteResponseMapper;
 
     /**
      * @param PriceBookAssignPricesResponseFactory   $assignPricesResponseFactory
@@ -90,6 +95,7 @@ class PricingService implements PriceBookServiceServerInterface
      * @param GetPricesOutputFactory                 $getPricesOutputFactory
      * @param PriceBookCreateResponseMapper          $priceBookCreateResponseMapper
      * @param PriceBookResponseMapper                $priceBookResponseMapper
+     * @param PriceBookDeleteResponseMapper          $priceBookDeleteResponseMapper
      * @param LoggerInterface                        $logger
      */
     public function __construct(
@@ -101,6 +107,7 @@ class PricingService implements PriceBookServiceServerInterface
         \Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFactory $getPricesOutputFactory,
         PriceBookCreateResponseMapper $priceBookCreateResponseMapper,
         PriceBookResponseMapper $priceBookResponseMapper,
+        PriceBookDeleteResponseMapper $priceBookDeleteResponseMapper,
         LoggerInterface $logger
     ) {
         $this->assignPricesResponseFactory = $assignPricesResponseFactory;
@@ -112,6 +119,7 @@ class PricingService implements PriceBookServiceServerInterface
         $this->logger = $logger;
         $this->priceBookCreateResponseMapper = $priceBookCreateResponseMapper;
         $this->priceBookResponseMapper = $priceBookResponseMapper;
+        $this->priceBookDeleteResponseMapper = $priceBookDeleteResponseMapper;
     }
 
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
@@ -144,7 +152,7 @@ class PricingService implements PriceBookServiceServerInterface
     {
         try {
             $this->validatePriceBookRequest($request);
-            $id = $this->priceBookRepository->createPriceBook($request);
+            $id = $this->priceBookRepository->create($request);
             $priceBook = $this->priceBookRepository->getById($id);
 
             return $this->buildPriceBookResponse($priceBook);
@@ -155,7 +163,23 @@ class PricingService implements PriceBookServiceServerInterface
 
     public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookDeleteResponseInterface
     {
-        // TODO: Implement deletePriceBook() method.
+        try {
+            $this->priceBookRepository->delete($request->getId());
+            $data = [
+                'status' => [
+                    'code' => '0',
+                    'message' => 'PriceBook was successfully deleted'
+                ]
+            ];
+        } catch (\ErrorException|\InvalidArgumentException $e) {
+            $data = [
+                'status' => [
+                    'code' => '1',
+                    'message' => $e->getMessage()
+                ]
+            ];
+        }
+        return $this->priceBookDeleteResponseMapper->setData($data)->build();
     }
 
     public function assignPrices(AssignPricesRequestInterface $request): PriceBookAssignPricesResponseInterface
@@ -279,7 +303,7 @@ class PricingService implements PriceBookServiceServerInterface
                 'price_book' => $priceBook,
                 'status' => [
                     'code' => '0',
-                    'message' => 'Success'
+                    'message' => 'PriceBook was successfully created'
                 ]
             ];
         }

@@ -97,10 +97,10 @@ class PriceBookRepository
      * @return string
      * @throws \ErrorException
      */
-    public function createPriceBook(PriceBookCreateRequestInterface $request) :string
+    public function create(PriceBookCreateRequestInterface $request) :string
     {
         $priceBookId = $this->priceBookIdBuilder->build($request->getScope());
-        $this->validatePriceBookIdUnique($priceBookId);
+        $this->validatePriceBookUnique($request->getScope());
 
         $connection = $this->resourceConnection->getConnection();
         $result = $connection->insert(
@@ -118,27 +118,58 @@ class PriceBookRepository
         }
     }
 
-    /**
-     * Checks if it's only record of Price Book with given id exists
-     *
-     * @param string $id
-     * @throws \ErrorException
-     */
-    private function validatePriceBookIdUnique(string $id) :void
+    public function delete(string $id)
     {
         $connection = $this->resourceConnection->getConnection();
-        $query = $connection->select()
-            ->from($this->getPriceBookTable())
-            ->where('id = ?', $id);
+        return $connection->delete(
+            $this->getPriceBookTable(),
+            ['id = ?' => $id]
+        );
+    }
 
-        $priceBook = $connection->fetchRow($query);
-        if ($priceBook) {
-            throw new \ErrorException(
-                sprintf(
-                    'Can\'t create Price Book. The record with id=%s is already exists in database',
-                    $id
-                )
-            );
+    /**
+     * Checks if it's only representation of we
+     *
+     * @param ScopeInterface $scope
+     * @throws \ErrorException
+     */
+    private function validatePriceBookUnique($scope) :void
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $priceBook = $connection->fetchAll($this->buildQueryConditions('website_ids', $scope->getWebsite()));
+        foreach ($priceBook as $priceBook) {
+            $priceBookCustomerGroups = explode(',', $priceBook['customer_group_ids']);
+            foreach ($priceBookCustomerGroups as $priceBookCustomerGroup) {
+                if (in_array($priceBookCustomerGroup, $scope->getCustomerGroup())) {
+                    throw new \ErrorException(
+                        sprintf(
+                            'Can\'t create Price Book with scope provided. ' .
+                            'Customer Group %s is already presented in PriceBook with id: %s',
+                            $priceBookCustomerGroup,
+                            $priceBook['id']
+                        )
+                    );
+                }
+            }
         }
+    }
+
+    /**
+     * Builds select query to DB
+     *
+     * @param string $fieldName
+     * @param array $ids
+     * @return \Magento\Framework\DB\Select
+     */
+    private function buildQueryConditions(string $fieldName, array $ids)
+    {
+        $cond = [];
+        foreach ($ids as $id) {
+            $cond[] = $this->resourceConnection->getConnection()
+                ->quoteInto($fieldName . ' LIKE ?', "%{$id}%");
+        }
+        return $this->resourceConnection->getConnection()->select()
+            ->from($this->getPriceBookTable())
+            ->where(join(' OR ', $cond));
     }
 }
