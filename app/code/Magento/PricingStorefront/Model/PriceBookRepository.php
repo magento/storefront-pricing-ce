@@ -13,10 +13,13 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Price Book Repository implementation
+ */
 class PriceBookRepository
 {
     const PRICES_BOOK_TABLE_NAME = 'price_book';
-    const DEFAULT_PRICES_BOOK_ID = 'default';
+    const DEFAULT_PRICE_BOOK_ID = 'default';
 
     /**
      * @var ResourceConnection
@@ -58,14 +61,24 @@ class PriceBookRepository
     public function getById(string $id = null): array
     {
         $connection = $this->resourceConnection->getConnection();
+        if ($id !== null) {
+            $select = $connection->select()
+                ->from($this->getPriceBookTable())
+                ->where('id = ?', $id);
+
+            $priceBook = $connection->fetchRow($select);
+            if (!empty($priceBook)) {
+                return $priceBook;
+            }
+            $this->logger->warning(__('Price book with id "%1" doesn\'t exist. Fallback to default', $id));
+        }
+        // Get default price book if no id was passed or as a fallback
         $select = $connection->select()
             ->from($this->getPriceBookTable())
-            ->where('id = ?', $id ?? self::DEFAULT_PRICES_BOOK_ID);
-
+            ->where('id = ?', self::DEFAULT_PRICE_BOOK_ID);
         $priceBook = $connection->fetchRow($select);
-
         if (empty($priceBook)) {
-            throw new NoSuchEntityException(__('Price book with id "%1" doesn\'t exist', $id));
+            throw new NoSuchEntityException(__('Default price book doesn\'t exist', $id));
         }
 
         return $priceBook;
@@ -74,6 +87,7 @@ class PriceBookRepository
     /**
      * @param ScopeInterface $scope
      * @return array
+     * @throws NoSuchEntityException
      */
     public function getByScope(ScopeInterface $scope) : array
     {
@@ -108,7 +122,7 @@ class PriceBookRepository
             [
                 'id' => $priceBookId,
                 'name' => $request->getName(),
-                'parent_id' => $request->getParentId(),
+                'parent_id' => $request->getParentId() ?? self::DEFAULT_PRICE_BOOK_ID,
                 'website_ids' => implode(',', $request->getScope()->getWebsite()),
                 'customer_group_ids' => implode(',', $request->getScope()->getCustomerGroup())
             ]
@@ -133,7 +147,7 @@ class PriceBookRepository
      * @param ScopeInterface $scope
      * @throws \ErrorException
      */
-    private function validatePriceBookUnique($scope) :void
+    private function validatePriceBookUnique(ScopeInterface $scope) :void
     {
         $connection = $this->resourceConnection->getConnection();
         $priceBook = $connection->fetchAll($this->buildQueryConditions('website_ids', $scope->getWebsite()));
@@ -161,7 +175,7 @@ class PriceBookRepository
      * @param array $ids
      * @return \Magento\Framework\DB\Select
      */
-    private function buildQueryConditions(string $fieldName, array $ids)
+    private function buildQueryConditions(string $fieldName, array $ids): \Magento\Framework\DB\Select
     {
         $cond = [];
         foreach ($ids as $id) {

@@ -24,12 +24,15 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseFactory;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\StatusFactory;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
 
+use Magento\PricingStorefrontApi\Proto\PriceBookResponse;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -73,18 +76,14 @@ class PricingService implements PriceBookServiceServerInterface
     private $logger;
 
     /**
-     * @var PriceBookCreateResponseMapper
-     */
-    private $priceBookCreateResponseMapper;
-
-    /**
      * @var PriceBookResponseMapper
      */
     private $priceBookResponseMapper;
+
     /**
-     * @var PriceBookDeleteResponseMapper
+     * @var PriceBookStatusResponseMapper
      */
-    private PriceBookDeleteResponseMapper $priceBookDeleteResponseMapper;
+    private $priceBookStatusResponseMapper;
 
     /**
      * @param PriceBookAssignPricesResponseFactory   $assignPricesResponseFactory
@@ -99,27 +98,15 @@ class PricingService implements PriceBookServiceServerInterface
      * @param LoggerInterface                        $logger
      */
     public function __construct(
-        PriceBookAssignPricesResponseFactory $assignPricesResponseFactory,
-        PriceBookUnassignPricesResponseFactory $priceBookUnassignPricesResponseFactory,
-        StatusFactory $statusFactory,
-        PriceManagement $priceManagement,
         PriceBookRepository $priceBookRepository,
-        \Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFactory $getPricesOutputFactory,
-        PriceBookCreateResponseMapper $priceBookCreateResponseMapper,
         PriceBookResponseMapper $priceBookResponseMapper,
-        PriceBookDeleteResponseMapper $priceBookDeleteResponseMapper,
+        PriceBookStatusResponseMapper $priceBookStatusResponseMapper,
         LoggerInterface $logger
     ) {
-        $this->assignPricesResponseFactory = $assignPricesResponseFactory;
-        $this->priceBookUnassignPricesResponseFactory = $priceBookUnassignPricesResponseFactory;
-        $this->statusFactory = $statusFactory;
-        $this->priceManagement = $priceManagement;
         $this->priceBookRepository = $priceBookRepository;
-        $this->getPricesOutputFactory = $getPricesOutputFactory;
         $this->logger = $logger;
-        $this->priceBookCreateResponseMapper = $priceBookCreateResponseMapper;
         $this->priceBookResponseMapper = $priceBookResponseMapper;
-        $this->priceBookDeleteResponseMapper = $priceBookDeleteResponseMapper;
+        $this->priceBookStatusResponseMapper = $priceBookStatusResponseMapper;
     }
 
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
@@ -161,9 +148,10 @@ class PricingService implements PriceBookServiceServerInterface
         }
     }
 
-    public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookDeleteResponseInterface
+    public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookStatusResponseInterface
     {
         try {
+            $this->validatePriceBookRequest($request);
             $this->priceBookRepository->delete($request->getId());
             $data = [
                 'status' => [
@@ -179,10 +167,10 @@ class PricingService implements PriceBookServiceServerInterface
                 ]
             ];
         }
-        return $this->priceBookDeleteResponseMapper->setData($data)->build();
+        return $this->priceBookStatusResponseMapper->setData($data)->build();
     }
 
-    public function assignPrices(AssignPricesRequestInterface $request): PriceBookAssignPricesResponseInterface
+    public function assignPrices(AssignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
         /** @var PriceBookAssignPricesResponseInterface $response */
         $response = $this->assignPricesResponseFactory->create();
@@ -210,7 +198,7 @@ class PricingService implements PriceBookServiceServerInterface
         return $response;
     }
 
-    public function unassignPrices(UnassignPricesRequestInterface $request): PriceBookUnassignPricesResponseInterface
+    public function unassignPrices(UnassignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
         /** @var PriceBookUnassignPricesResponseInterface $response */
         $response = $this->priceBookUnassignPricesResponseFactory->create();
@@ -262,7 +250,7 @@ class PricingService implements PriceBookServiceServerInterface
     /**
      * PriceBook create request validation
      *
-     * @param PriceBookCreateRequestInterface|PriceBookScopeRequestInterface $request
+     * @param PriceBookCreateRequestInterface|PriceBookScopeRequestInterface|PriceBookDeleteRequestInterface $request
      * @throws \InvalidArgumentException
      */
     private function validatePriceBookRequest($request) :void
@@ -275,10 +263,16 @@ class PricingService implements PriceBookServiceServerInterface
                 throw new \InvalidArgumentException('Price Book parent id is missing in the request');
             }
         }
-        if (empty($request->getScope()) ||
-            empty($request->getScope()->getWebsite()) ||
-            empty($request->getScope()->getCustomerGroup())) {
-            throw new \InvalidArgumentException('Price Book scope is missing in the request or has empty data');
+        if ($request instanceof PriceBookDeleteRequestInterface) {
+            if (empty($request->getId())) {
+                throw new \InvalidArgumentException('Price Book id is missing in the request');
+            }
+        } else {
+            if (empty($request->getScope()) ||
+                empty($request->getScope()->getWebsite()) ||
+                empty($request->getScope()->getCustomerGroup())) {
+                throw new \InvalidArgumentException('Price Book scope is missing in the request or has empty data');
+            }
         }
     }
 
@@ -287,9 +281,9 @@ class PricingService implements PriceBookServiceServerInterface
      *
      * @param array  $priceBook
      * @param string $exceptionMessage
-     * @return PriceBookCreateResponse
+     * @return PriceBookResponse
      */
-    private function buildPriceBookResponse($priceBook = [], $exceptionMessage = ''): PriceBookCreateResponse
+    private function buildPriceBookResponse($priceBook = [], $exceptionMessage = ''): PriceBookResponseInterface
     {
         if (empty($priceBook)) {
             $data = [
@@ -308,6 +302,6 @@ class PricingService implements PriceBookServiceServerInterface
             ];
         }
 
-        return $this->priceBookCreateResponseMapper->setData($data)->build();
+        return $this->priceBookResponseMapper->setData($data)->build();
     }
 }

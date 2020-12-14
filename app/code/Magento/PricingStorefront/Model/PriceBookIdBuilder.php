@@ -23,9 +23,9 @@ class PriceBookIdBuilder implements PriceBookIdBuilderInterface
         sort($customerGroups,SORT_NUMERIC);
 
         return sprintf(
-            'w_%s:cg_%s',
-            implode('-', $websites),
-            implode('-', $customerGroups)
+            'w[%s]:cg[%s]',
+            implode(',', $websites),
+            implode(',', $customerGroups)
         );
     }
 }
