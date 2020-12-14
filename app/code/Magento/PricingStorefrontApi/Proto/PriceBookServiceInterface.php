@@ -23,38 +23,38 @@ interface PriceBookServiceInterface extends GRPC\ServiceInterface
     /**
     * @param GRPC\ContextInterface $ctx
     * @param PriceBookCreateRequest $in
-    * @return PriceBookCreateResponse
+    * @return PriceBookResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function createPriceBook(GRPC\ContextInterface $ctx, PriceBookCreateRequest $in): PriceBookCreateResponse;
+    public function createPriceBook(GRPC\ContextInterface $ctx, PriceBookCreateRequest $in): PriceBookResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx
     * @param PriceBookDeleteRequest $in
-    * @return PriceBookDeleteResponse
+    * @return PriceBookStatusResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function deletePriceBook(GRPC\ContextInterface $ctx, PriceBookDeleteRequest $in): PriceBookDeleteResponse;
+    public function deletePriceBook(GRPC\ContextInterface $ctx, PriceBookDeleteRequest $in): PriceBookStatusResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx
     * @param AssignPricesRequest $in
-    * @return PriceBookAssignPricesResponse
+    * @return PriceBookStatusResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function assignPrices(GRPC\ContextInterface $ctx, AssignPricesRequest $in): PriceBookAssignPricesResponse;
+    public function assignPrices(GRPC\ContextInterface $ctx, AssignPricesRequest $in): PriceBookStatusResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx
     * @param UnassignPricesRequest $in
-    * @return PriceBookUnassignPricesResponse
+    * @return PriceBookStatusResponse
     *
     * @throws GRPC\Exception\InvokeException
     */
-    public function unassignPrices(GRPC\ContextInterface $ctx, UnassignPricesRequest $in): PriceBookUnassignPricesResponse;
+    public function unassignPrices(GRPC\ContextInterface $ctx, UnassignPricesRequest $in): PriceBookStatusResponse;
 
     /**
     * @param GRPC\ContextInterface $ctx

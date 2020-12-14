@@ -58,7 +58,7 @@ class PriceBookServiceClient extends \Grpc\BaseStub
         return $this->_simpleRequest(
             '/magento.pricingStorefrontApi.proto.PriceBookService/createPriceBook',
             $argument,
-            ['\Magento\PricingStorefrontApi\Proto\PriceBookCreateResponse', 'decode'],
+            ['\Magento\PricingStorefrontApi\Proto\PriceBookResponse', 'decode'],
             $metadata,
             $options
         );
@@ -79,7 +79,7 @@ class PriceBookServiceClient extends \Grpc\BaseStub
         return $this->_simpleRequest(
             '/magento.pricingStorefrontApi.proto.PriceBookService/deletePriceBook',
             $argument,
-            ['\Magento\PricingStorefrontApi\Proto\PriceBookDeleteResponse', 'decode'],
+            ['\Magento\PricingStorefrontApi\Proto\PriceBookStatusResponse', 'decode'],
             $metadata,
             $options
         );
@@ -100,7 +100,7 @@ class PriceBookServiceClient extends \Grpc\BaseStub
         return $this->_simpleRequest(
             '/magento.pricingStorefrontApi.proto.PriceBookService/assignPrices',
             $argument,
-            ['\Magento\PricingStorefrontApi\Proto\PriceBookAssignPricesResponse', 'decode'],
+            ['\Magento\PricingStorefrontApi\Proto\PriceBookStatusResponse', 'decode'],
             $metadata,
             $options
         );
@@ -121,7 +121,7 @@ class PriceBookServiceClient extends \Grpc\BaseStub
         return $this->_simpleRequest(
             '/magento.pricingStorefrontApi.proto.PriceBookService/unassignPrices',
             $argument,
-            ['\Magento\PricingStorefrontApi\Proto\PriceBookUnassignPricesResponse', 'decode'],
+            ['\Magento\PricingStorefrontApi\Proto\PriceBookStatusResponse', 'decode'],
             $metadata,
             $options
         );
