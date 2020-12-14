@@ -23,14 +23,14 @@ final class PriceBookScopeRequest implements PriceBookScopeRequestInterface
     /**
      * @var \Magento\PricingStorefrontApi\Api\Data\ScopeInterface
      */
-    private $scopes;
+    private $scope;
 
     /**
      * @inheritdoc
      *
      * @return \Magento\PricingStorefrontApi\Api\Data\ScopeInterface|null
      */
-    public function getScope(): ?\Magento\PricingStorefrontApi\Api\Data\ScopeInterface
+    public function getScopes(): ?\Magento\PricingStorefrontApi\Api\Data\ScopeInterface
     {
         return $this->scopes;
     }

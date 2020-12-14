@@ -148,7 +148,7 @@ class PricingService implements PriceBookServiceServerInterface
         }
     }
 
-    public function createPriceBook(PriceBookCreateRequestInterface $request): PriceBookCreateResponseInterface
+    public function createPriceBook(PriceBookCreateRequestInterface $request): PriceBookResponseInterface
     {
         try {
             $this->validatePriceBookRequest($request);

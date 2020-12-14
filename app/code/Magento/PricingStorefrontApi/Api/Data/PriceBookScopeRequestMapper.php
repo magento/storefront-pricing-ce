@@ -85,8 +85,8 @@ final class PriceBookScopeRequestMapper
     private function setByKey(PriceBookScopeRequest $dto, string $key, $value): void
     {
         switch ($key) {
-            case "scopes":
-                $dto->setScopes(
+            case "scope":
+                $dto->setScope(
                     $this->objectManager
                        ->create(\Magento\PricingStorefrontApi\Api\Data\ScopeMapper::class)
                        ->setData($value)
