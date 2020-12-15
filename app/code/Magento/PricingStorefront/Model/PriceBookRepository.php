@@ -78,7 +78,7 @@ class PriceBookRepository
             ->where('id = ?', self::DEFAULT_PRICE_BOOK_ID);
         $priceBook = $connection->fetchRow($select);
         if (empty($priceBook)) {
-            throw new NoSuchEntityException(__('Default price book doesn\'t exist', $id));
+            throw new NoSuchEntityException(__('Default price book doesn\'t exist'));
         }
 
         return $priceBook;
@@ -110,10 +110,10 @@ class PriceBookRepository
      * Create price book and save to DB
      *
      * @param PriceBookCreateRequestInterface $request
-     * @return string
+     * @return string|bool
      * @throws \ErrorException
      */
-    public function create(PriceBookCreateRequestInterface $request) :string
+    public function create(PriceBookCreateRequestInterface $request)
     {
         $priceBookId = $this->priceBookIdBuilder->build($request->getScope());
         $this->validatePriceBookUnique($request->getScope());
@@ -132,6 +132,7 @@ class PriceBookRepository
         if ($result) {
             return $priceBookId;
         }
+        throw new \ErrorException(__('Price book wasn\'t created'));
     }
 
     /**

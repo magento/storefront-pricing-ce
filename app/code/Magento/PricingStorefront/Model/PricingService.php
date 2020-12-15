@@ -32,6 +32,8 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Class to manage price books
+ *
+ * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class PricingService implements PriceBookServiceServerInterface
 {
