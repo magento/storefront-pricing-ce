@@ -10,12 +10,11 @@
     <table name="price_book" resource="default" engine="innodb"
            comment="Price Book">
         <column xsi:type="int" name="row_id" unsigned="true" nullable="false" identity="true" comment="Row ID"/>
-        <column xsi:type="text" name="id" unsigned="true" nullable="true" identity="true" comment="Price Book ID"/>
-        <column xsi:type="text" name="parent_id" unsigned="true" nullable="true" identity="false" comment="Parent Price Book ID"/>
+        <column xsi:type="text" name="id" nullable="true" comment="Price Book ID"/>
+        <column xsi:type="text" name="parent_id" nullable="true" comment="Parent Price Book ID"/>
         <column xsi:type="text" name="name" nullable="false" comment="Price Book Name"/>
         <column xsi:type="text" name="customer_group_ids" nullable="true"  comment="Customer Group IDs"/>
         <column xsi:type="text" name="website_ids" nullable="true" comment="Website IDs"/>
-        <!-- @TODO create unique index by group and website?? -->
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="row_id"/>
         </constraint>
