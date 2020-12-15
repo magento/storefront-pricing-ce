@@ -30,9 +30,9 @@ final class PriceBookScopeRequest implements PriceBookScopeRequestInterface
      *
      * @return \Magento\PricingStorefrontApi\Api\Data\ScopeInterface|null
      */
-    public function getScopes(): ?\Magento\PricingStorefrontApi\Api\Data\ScopeInterface
+    public function getScope(): ?\Magento\PricingStorefrontApi\Api\Data\ScopeInterface
     {
-        return $this->scopes;
+        return $this->scope;
     }
 
     /**
@@ -41,8 +41,8 @@ final class PriceBookScopeRequest implements PriceBookScopeRequestInterface
      * @param \Magento\PricingStorefrontApi\Api\Data\ScopeInterface $value
      * @return void
      */
-    public function setScopes(\Magento\PricingStorefrontApi\Api\Data\ScopeInterface $value): void
+    public function setScope(\Magento\PricingStorefrontApi\Api\Data\ScopeInterface $value): void
     {
-        $this->scopes = $value;
+        $this->scope = $value;
     }
 }

@@ -15,12 +15,7 @@ use Magento\PricingStorefrontApi\Api\Data\GetPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseFactory;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponse;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseMapper;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
@@ -86,16 +81,10 @@ class PricingService implements PriceBookServiceServerInterface
     private $priceBookStatusResponseMapper;
 
     /**
-     * @param PriceBookAssignPricesResponseFactory   $assignPricesResponseFactory
-     * @param PriceBookUnassignPricesResponseFactory $priceBookUnassignPricesResponseFactory
-     * @param StatusFactory                          $statusFactory
-     * @param PriceManagement                        $priceManagement
-     * @param PriceBookRepository                    $priceBookRepository
-     * @param GetPricesOutputFactory                 $getPricesOutputFactory
-     * @param PriceBookCreateResponseMapper          $priceBookCreateResponseMapper
-     * @param PriceBookResponseMapper                $priceBookResponseMapper
-     * @param PriceBookDeleteResponseMapper          $priceBookDeleteResponseMapper
-     * @param LoggerInterface                        $logger
+     * @param PriceBookRepository $priceBookRepository
+     * @param PriceBookResponseMapper $priceBookResponseMapper
+     * @param PriceBookStatusResponseMapper $priceBookStatusResponseMapper
+     * @param LoggerInterface $logger
      */
     public function __construct(
         PriceBookRepository $priceBookRepository,
@@ -109,6 +98,13 @@ class PricingService implements PriceBookServiceServerInterface
         $this->priceBookStatusResponseMapper = $priceBookStatusResponseMapper;
     }
 
+    /**
+     * Find price book with request
+     *
+     * @param PriceBookScopeRequestInterface $request
+     * @return PriceBookResponseInterface
+     * @throws NoSuchEntityException
+     */
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
     {
         try {
@@ -135,6 +131,13 @@ class PricingService implements PriceBookServiceServerInterface
         }
     }
 
+    /**
+     * Create price book with request
+     *
+     * @param PriceBookCreateRequestInterface $request
+     * @return PriceBookResponseInterface
+     * @throws NoSuchEntityException
+     */
     public function createPriceBook(PriceBookCreateRequestInterface $request): PriceBookResponseInterface
     {
         try {
@@ -148,6 +151,12 @@ class PricingService implements PriceBookServiceServerInterface
         }
     }
 
+    /**
+     * Delete price book with request
+     *
+     * @param PriceBookDeleteRequestInterface $request
+     * @return PriceBookStatusResponseInterface
+     */
     public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookStatusResponseInterface
     {
         try {
@@ -248,7 +257,7 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
-     * PriceBook create request validation
+     * PriceBook request validation
      *
      * @param PriceBookCreateRequestInterface|PriceBookScopeRequestInterface|PriceBookDeleteRequestInterface $request
      * @throws \InvalidArgumentException

@@ -85,6 +85,8 @@ class PriceBookRepository
     }
 
     /**
+     * Get price Book by scope
+     *
      * @param ScopeInterface $scope
      * @return array
      * @throws NoSuchEntityException
@@ -132,6 +134,12 @@ class PriceBookRepository
         }
     }
 
+    /**
+     * Delete price book by id
+     *
+     * @param string $id
+     * @return mixed
+     */
     public function delete(string $id)
     {
         $connection = $this->resourceConnection->getConnection();
