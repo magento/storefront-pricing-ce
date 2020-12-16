@@ -10,7 +10,7 @@
     <table name="price_book" resource="default" engine="innodb"
            comment="Price Book">
         <column xsi:type="int" name="row_id" unsigned="true" nullable="false" identity="true" comment="Row ID"/>
-        <column xsi:type="text" name="id" unsigned="true" nullable="true" identity="true" comment="Price Book ID"/>
+        <column xsi:type="varchar" name="id" length="455" nullable="false" comment="Price Book ID"/>
         <column xsi:type="text" name="parent_id" unsigned="true" nullable="true" identity="false" comment="Parent Price Book ID"/>
         <column xsi:type="text" name="name" nullable="false" comment="Price Book Name"/>
         <column xsi:type="text" name="customer_group_ids" nullable="true"  comment="Customer Group IDs"/>
@@ -19,27 +19,32 @@
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="row_id"/>
         </constraint>
+         <constraint xsi:type="unique" referenceId="UNIQUE_ID">
+            <column name="id"/>
+        </constraint>
     </table>
     <table name="prices" resource="default" engine="innodb"
            comment="Price Table">
         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Price ID"/>
-        <column xsi:type="text" name="product_id" nullable="false" comment="Product ID"/>
-        <column xsi:type="int" name="pricebook_row_id" unsigned="true" nullable="false" identity="false" comment="Price Book ID"/>
-        <column xsi:type="decimal" name="regular_price" scale="6" precision="20" unsigned="false" nullable="true"
-                comment="Regular Price"/>
-        <column xsi:type="decimal" name="price" scale="6" precision="20" unsigned="false" nullable="true"
-                comment="Final Price"/>
-        <column xsi:type="decimal" name="maximum_regular_price" scale="6" precision="20" unsigned="false" nullable="true"
+        <column xsi:type="varchar" name="entity_id" length="455" nullable="false" comment="Product ID"/>
+        <column xsi:type="varchar" name="pricebook_id" length="455" nullable="false" comment="Price Book ID"/>
+        <column xsi:type="decimal" name="minimum_price_regular" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Minimum Regular Price"/>
+        <column xsi:type="decimal" name="minimum_price_final" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Minimum Final Price"/>
+        <column xsi:type="decimal" name="maximum_price_regular" scale="6" precision="20" unsigned="false" nullable="true"
                 comment="Maximum Regular Price"/>
-        <column xsi:type="decimal" name="maximum_price" scale="6" precision="20" unsigned="false" nullable="true"
+        <column xsi:type="decimal" name="maximum_price_final" scale="6" precision="20" unsigned="false" nullable="true"
                 comment="Maximum Final Price"/>
         <column xsi:type="decimal" name="qty" scale="4" precision="12" unsigned="false" nullable="false" default="0"
                 comment="Qty"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>
-        <constraint xsi:type="foreign" referenceId="PRICE_PRICEBOOK_ID_PRICE_BOOK_ID"
-                    table="prices" column="pricebook_row_id" referenceTable="price_book"
-                    referenceColumn="row_id" onDelete="CASCADE"/>
+        <constraint xsi:type="unique" referenceId="UNIQUE_PB_ID_P_ID_QTY">
+            <column name="entity_id"/>
+            <column name="pricebook_id"/>
+            <column name="qty"/>
+        </constraint>
     </table>
 </schema>

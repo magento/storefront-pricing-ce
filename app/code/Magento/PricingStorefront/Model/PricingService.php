@@ -7,31 +7,23 @@ declare(strict_types=1);
 
 namespace Magento\PricingStorefront\Model;
 
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PricingStorefrontApi\Api\Data\AssignPricesRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputFactory;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputInterface;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseFactory;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookAssignPricesResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponse;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseMapper;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseInterface;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
+use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputMapper;
+use Magento\PricingStorefrontApi\Api\Data\ProductPriceMapper;
+use Magento\PricingStorefrontApi\Api\Data\PriceMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseMapper;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseFactory;
-use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseInterface;
-use Magento\PricingStorefrontApi\Api\Data\StatusFactory;
+use Magento\PricingStorefrontApi\Api\Data\AssignPricesRequestMapper;
+use Magento\PricingStorefrontApi\Api\Data\ProductPriceArrayMapper;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
-
 use Magento\PricingStorefrontApi\Proto\PriceBookResponse;
 use Psr\Log\LoggerInterface;
 
@@ -41,21 +33,6 @@ use Psr\Log\LoggerInterface;
 class PricingService implements PriceBookServiceServerInterface
 {
     /**
-     * @var PriceBookAssignPricesResponseFactory
-     */
-    private $assignPricesResponseFactory;
-
-    /**
-     * @var PriceBookUnassignPricesResponseFactory
-     */
-    private $priceBookUnassignPricesResponseFactory;
-
-    /**
-     * @var StatusFactory
-     */
-    private $statusFactory;
-
-    /**
      * @var PriceManagement
      */
     private $priceManagement;
@@ -64,16 +41,6 @@ class PricingService implements PriceBookServiceServerInterface
      * @var PriceBookRepository
      */
     private $priceBookRepository;
-
-    /**
-     * @var GetPricesOutputFatory
-     */
-    private $getPricesOutputFactory;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     /**
      * @var PriceBookResponseMapper
@@ -86,27 +53,69 @@ class PricingService implements PriceBookServiceServerInterface
     private $priceBookStatusResponseMapper;
 
     /**
-     * @param PriceBookAssignPricesResponseFactory   $assignPricesResponseFactory
-     * @param PriceBookUnassignPricesResponseFactory $priceBookUnassignPricesResponseFactory
-     * @param StatusFactory                          $statusFactory
-     * @param PriceManagement                        $priceManagement
-     * @param PriceBookRepository                    $priceBookRepository
-     * @param GetPricesOutputFactory                 $getPricesOutputFactory
-     * @param PriceBookCreateResponseMapper          $priceBookCreateResponseMapper
-     * @param PriceBookResponseMapper                $priceBookResponseMapper
-     * @param PriceBookDeleteResponseMapper          $priceBookDeleteResponseMapper
-     * @param LoggerInterface                        $logger
+     * @var ProductPriceMapper
+     */
+    private $productPriceMapper;
+
+    /**
+     * @var PriceMapper
+     */
+    private $priceMapper;
+
+    /**
+     * @var GetPricesOutputMapper
+     */
+    private $getPricesOutputMapper;
+
+    /**
+     * @var AssignPricesRequestMapper
+     */
+    private $assignPricesRequestMapper;
+
+    /**
+     * @var ProductPriceArrayMapper
+     */
+    private $productPriceArrayMapper;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @param PriceManagement $priceManagement
+     * @param PriceBookRepository $priceBookRepository
+     * @param PriceBookResponseMapper $priceBookResponseMapper
+     * @param PriceBookStatusResponseMapper $priceBookStatusResponseMapper
+     * @param ProductPriceMapper $productPriceMapper
+     * @param PriceMapper $priceMapper
+     * @param GetPricesOutputMapper $getPricesOutputMapper
+     * @param AssignPricesRequestMapper $assignPricesRequestMapper
+     * @param ProductPriceArrayMapper $productPriceArrayMapper
+     * @param LoggerInterface $logger
      */
     public function __construct(
+        PriceManagement $priceManagement,
         PriceBookRepository $priceBookRepository,
         PriceBookResponseMapper $priceBookResponseMapper,
         PriceBookStatusResponseMapper $priceBookStatusResponseMapper,
+        ProductPriceMapper $productPriceMapper,
+        PriceMapper $priceMapper,
+        GetPricesOutputMapper $getPricesOutputMapper,
+        AssignPricesRequestMapper $assignPricesRequestMapper,
+        ProductPriceArrayMapper $productPriceArrayMapper,
         LoggerInterface $logger
     ) {
+        $this->priceManagement = $priceManagement;
         $this->priceBookRepository = $priceBookRepository;
-        $this->logger = $logger;
         $this->priceBookResponseMapper = $priceBookResponseMapper;
         $this->priceBookStatusResponseMapper = $priceBookStatusResponseMapper;
+        $this->productPriceMapper = $productPriceMapper;
+        $this->priceMapper = $priceMapper;
+        $this->getPricesOutputMapper = $getPricesOutputMapper;
+        $this->assignPricesRequestMapper = $assignPricesRequestMapper;
+        $this->productPriceArrayMapper = $productPriceArrayMapper;
+        $this->logger = $logger;
     }
 
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
@@ -170,76 +179,155 @@ class PricingService implements PriceBookServiceServerInterface
         return $this->priceBookStatusResponseMapper->setData($data)->build();
     }
 
+    /**
+     * Service to assign prices to price book.
+     *
+     * @param AssignPricesRequestInterface $request
+     * @return PriceBookStatusResponseInterface
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
     public function assignPrices(AssignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
-        /** @var PriceBookAssignPricesResponseInterface $response */
-        $response = $this->assignPricesResponseFactory->create();
-        /** @var \Magento\PricingStorefrontApi\Api\Data\Status $status */
-        $status = $this->statusFactory->create();
-
         if (empty($request->getPriceBookId())) {
             throw new \InvalidArgumentException('Price Book ID is not present in request.');
         }
+
+        $statusCode = '0';
 
         if (empty($request->getPrices())) {
-            $status->setCode('success');
-            $status->setMessage('Prices not present in request - nothing to process.');
-            $response->setStatus($status);
-            return $response;
+            return $this->priceBookStatusResponseMapper->setData([
+                'status' => [
+                    'code' => $statusCode,
+                    'message' => 'Prices not present in request - nothing to process.'
+                ]
+            ])->build();
         }
 
-        try {
-            $this->priceBookRepository->getById($request->getPriceBookId());
-        } catch (NoSuchEntityException $e) {
-            throw new \InvalidArgumentException('Price Book doesn\'t exist.');
-        }
-        // @TODO get price book by id if doesnt exist - throw an exception
+        // if price book not exists - exception will be thrown - client side need to send create request before
+        $priceBookData = $this->priceBookRepository->getById($request->getPriceBookId());
 
-        return $response;
+        $errors = [];
+        $bookId = $priceBookData[PriceBookRepository::KEY_ID];
+        $parentId = $priceBookData[PriceBookRepository::KEY_PARENT_ID];
+        $websites = $priceBookData[PriceBookRepository::KEY_WEBSITE_IDS];
+        $customerGroups = $priceBookData[PriceBookRepository::KEY_CUSTOMER_GROUP_IDS];
+        $assignToDefault = $bookId === PriceBookRepository::DEFAULT_PRICE_BOOK_ID || (!$websites && !$customerGroups);
+
+        if ($assignToDefault) {
+            $bookId = PriceBookRepository::DEFAULT_PRICE_BOOK_ID;
+            $parentId = null;
+        }
+
+        foreach ($request->getPrices() as $price) {
+            $priceArray = $this->productPriceArrayMapper->convertToArray($price);
+
+            try {
+                if (!$assignToDefault) {
+                    $this->priceManagement->getPriceRow(
+                        PriceBookRepository::DEFAULT_PRICE_BOOK_ID,
+                        $price->getEntityId(),
+                        (float)$price->getQty()
+                    );
+                }
+
+                // @TODO if price on default is set but not set for some of parent
+                // at the moment it will be set for specified book but parents prices will not be updated
+                $this->priceManagement->assignPrice($bookId, $priceArray, $parentId);
+            } catch (\Throwable $e) {
+                $statusCode = 2;
+                $errors[] = [
+                    'entity_id' => $price->getEntityId(),
+                    'error' => $e->getMessage()
+                ];
+            }
+        }
+
+        return $this->priceBookStatusResponseMapper->setData([
+            'status' => [
+                'code' => $statusCode,
+                'message' => empty($errors)
+                    ? 'Prices was assigned with success.'
+                    : \json_encode($errors)
+            ]
+        ])->build();
     }
 
+    /**
+     * Service to remove prices from price book by specified ids.
+     *
+     * @param UnassignPricesRequestInterface $request
+     * @return PriceBookStatusResponseInterface
+     */
     public function unassignPrices(UnassignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
-        /** @var PriceBookUnassignPricesResponseInterface $response */
-        $response = $this->priceBookUnassignPricesResponseFactory->create();
-        /** @var \Magento\PricingStorefrontApi\Api\Data\Status $status */
-        $status = $this->statusFactory->create();
-
+        // @TODO if request is to remove prices for parent - do we need to remove them for all child???
         if (empty($request->getPriceBookId())) {
             throw new \InvalidArgumentException('Price Book ID is not present in request.');
         }
 
+        $statusCode = '0';
+
         if (empty($request->getIds())) {
-            $status->setCode('success');
-            $status->setMessage('Product ids not present in request - nothing to process.');
-            $response->setStatus($status);
-            return $response;
+            return $this->priceBookStatusResponseMapper->setData([
+                'status' => [
+                    'code' => $statusCode,
+                    'message' => 'Product ids not present in request - nothing to process.'
+                ]
+            ])->build();
         }
 
         try {
-            $this->priceManagement->unassignPrices($request->getPriceBookId(), $request->getIds());
-            $statusCode = 'success';
+            $this->priceManagement->unassignPrices((string)$request->getPriceBookId(), $request->getIds());
             $statusMessage = 'Prices was successfully unassigned from price book.';
         } catch (\Throwable $e) {
-            $statusCode = 'error';
-            $statusMessage = 'Unable to unasssign prices from price book';
+            $statusCode = 1;
+            $statusMessage = 'Unable to unassign prices from price book: ' . $e->getMessage();
             $this->logger->error($statusMessage, ['exception' => $e]);
         }
 
-        $status->setCode($statusCode);
-        $status->setMessage($statusMessage);
-        $response->setStatus($status);
-
-        return $response;
+        return $this->priceBookStatusResponseMapper->setData([
+            'status' => [
+                'code' => $statusCode,
+                'message' => $statusMessage
+            ]
+        ])->build();
     }
 
+    /**
+     * Service to get price for products in specified price books.
+     *
+     * @param GetPricesRequestInterface $request
+     * @return GetPricesOutputInterface
+     */
     public function getPrices(GetPricesRequestInterface $request): GetPricesOutputInterface
     {
-        $response = $this->getPricesOutputFactory->create();
-        $priceBookId = $request->getPriceBookId();
-        $productIds = $request->getIds();
+        if (empty($request->getIds())) {
+            throw new \InvalidArgumentException('Product ids not present in request.');
+        }
 
-        return $response;
+        $priceBookId = $request->getPriceBookId();
+        $this->priceBookRepository->getById($request->getPriceBookId());
+        $prices = [];
+
+        foreach ($request->getIds() as $productId) {
+            try {
+                $priceData = $this->priceManagement->fetchPrice($productId, $priceBookId);
+            } catch (\Throwable $e) {
+                $priceData = [PriceRepository::KEY_PRODUCT_ID => $productId];
+                $this->logger->error(
+                    sprintf(
+                        'Unable to fetch price for product %1 in price book %2: %3',
+                        $productId,
+                        $priceBookId,
+                        $e->getMessage()
+                    )
+                );
+            }
+
+            $prices[] = $this->productPriceMapper->setData($priceData)->build();
+        }
+
+        return $this->getPricesOutputMapper->setData(['prices' => $prices])->build();
     }
 
     public function getTierPrices(GetPricesRequestInterface $request): GetPricesOutputInterface
