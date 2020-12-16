@@ -23,6 +23,7 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseFactory;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookUnassignPricesResponseInterface;
+use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
 use Magento\PricingStorefrontApi\Api\Data\StatusFactory;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
@@ -37,6 +38,9 @@ use Psr\Log\LoggerInterface;
  */
 class PricingService implements PriceBookServiceServerInterface
 {
+    private const STATUS_SUCCESS = '0';
+    private const STATUS_FAIL = '1';
+
     /**
      * @var PriceBookAssignPricesResponseFactory
      */
@@ -110,22 +114,22 @@ class PricingService implements PriceBookServiceServerInterface
     public function findPriceBook(PriceBookScopeRequestInterface $request): PriceBookResponseInterface
     {
         try {
-            $this->validatePriceBookRequest($request);
+            $this->validatePriceBookScopeRequest($request);
             $priceBook = $this->priceBookRepository->getByScope($request->getScope());
             return $this->priceBookResponseMapper->setData(
                 [
                     'price_book' => $priceBook,
                     'status' => [
-                        'code' => '0',
+                        'code' => self::STATUS_SUCCESS,
                         'message' => 'Success'
                     ]
                 ]
             )->build();
-        } catch (\ErrorException|\InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             return $this->priceBookResponseMapper->setData(
                 [
                     'status' => [
-                        'code' => '1',
+                        'code' => self::STATUS_FAIL,
                         'message' => $e->getMessage()
                     ]
                 ]
@@ -138,17 +142,16 @@ class PricingService implements PriceBookServiceServerInterface
      *
      * @param PriceBookCreateRequestInterface $request
      * @return PriceBookResponseInterface
-     * @throws NoSuchEntityException
      */
     public function createPriceBook(PriceBookCreateRequestInterface $request): PriceBookResponseInterface
     {
         try {
-            $this->validatePriceBookRequest($request);
+            $this->validatePriceBookCreateRequest($request);
             $id = $this->priceBookRepository->create($request);
             $priceBook = $this->priceBookRepository->getById($id);
 
             return $this->buildPriceBookResponse($priceBook);
-        } catch (\ErrorException|\InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             return $this->buildPriceBookResponse(null, $e->getMessage());
         }
     }
@@ -162,18 +165,18 @@ class PricingService implements PriceBookServiceServerInterface
     public function deletePriceBook(PriceBookDeleteRequestInterface $request): PriceBookStatusResponseInterface
     {
         try {
-            $this->validatePriceBookRequest($request);
+            $this->validatePriceBookDeleteRequest($request);
             $this->priceBookRepository->delete($request->getId());
             $data = [
                 'status' => [
-                    'code' => '0',
+                    'code' => self::STATUS_SUCCESS,
                     'message' => 'PriceBook was successfully deleted'
                 ]
             ];
-        } catch (\ErrorException|\InvalidArgumentException $e) {
+        } catch (\Throwable $e) {
             $data = [
                 'status' => [
-                    'code' => '1',
+                    'code' => self::STATUS_FAIL,
                     'message' => $e->getMessage()
                 ]
             ];
@@ -261,29 +264,47 @@ class PricingService implements PriceBookServiceServerInterface
     /**
      * PriceBook request validation
      *
-     * @param PriceBookCreateRequestInterface|PriceBookScopeRequestInterface|PriceBookDeleteRequestInterface $request
+     * @param PriceBookCreateRequestInterface $request
      * @throws \InvalidArgumentException
      */
-    private function validatePriceBookRequest($request) :void
+    private function validatePriceBookCreateRequest( PriceBookCreateRequestInterface $request) :void
     {
-        if ($request instanceof PriceBookCreateRequestInterface) {
-            if (empty($request->getName())) {
-                throw new \InvalidArgumentException('Price Book name is missing in the request');
-            }
-            if (empty($request->getParentId())) {
-                throw new \InvalidArgumentException('Price Book parent id is missing in the request');
-            }
+        if (empty($request->getName())) {
+            throw new \InvalidArgumentException('Price Book name is missing in the request');
         }
-        if ($request instanceof PriceBookDeleteRequestInterface) {
-            if (empty($request->getId())) {
-                throw new \InvalidArgumentException('Price Book id is missing in the request');
-            }
-        } else {
-            if (empty($request->getScope()) ||
-                empty($request->getScope()->getWebsite()) ||
-                empty($request->getScope()->getCustomerGroup())) {
-                throw new \InvalidArgumentException('Price Book scope is missing in the request or has empty data');
-            }
+        if (empty($request->getParentId())) {
+            throw new \InvalidArgumentException('Price Book parent id is missing in the request');
+        }
+        $this->validatePriceBookScope($request->getScope());
+    }
+
+    /**
+     * @param PriceBookDeleteRequestInterface $request
+     * @throws \InvalidArgumentException
+     */
+    private function validatePriceBookDeleteRequest(PriceBookDeleteRequestInterface $request): void
+    {
+        if (empty($request->getId())) {
+            throw new \InvalidArgumentException('Price Book id is missing in the request');
+        }
+    }
+
+    /**
+     * @param PriceBookScopeRequestInterface $request
+     */
+    private function validatePriceBookScopeRequest(PriceBookScopeRequestInterface $request): void
+    {
+        $this->validatePriceBookScope($request->getScope());
+    }
+
+    /**
+     * @param ScopeInterface|null $scope
+     * @throws \InvalidArgumentException
+     */
+    private function validatePriceBookScope(?ScopeInterface $scope): void
+    {
+        if ($scope === null || empty($scope->getWebsite()) || empty($scope->getCustomerGroup())) {
+            throw new \InvalidArgumentException('Price Book scope is missing in the request or has empty data');
         }
     }
 
@@ -292,14 +313,14 @@ class PricingService implements PriceBookServiceServerInterface
      *
      * @param array  $priceBook
      * @param string $exceptionMessage
-     * @return PriceBookResponse
+     * @return PriceBookResponseInterface
      */
     private function buildPriceBookResponse($priceBook = [], $exceptionMessage = ''): PriceBookResponseInterface
     {
         if (empty($priceBook)) {
             $data = [
                 'status' => [
-                    'code' => '1',
+                    'code' => self::STATUS_FAIL,
                     'message' => $exceptionMessage
                 ]
             ];
@@ -307,7 +328,7 @@ class PricingService implements PriceBookServiceServerInterface
             $data = [
                 'price_book' => $priceBook,
                 'status' => [
-                    'code' => '0',
+                    'code' => self::STATUS_SUCCESS,
                     'message' => 'PriceBook was successfully created'
                 ]
             ];

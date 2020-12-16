@@ -14,7 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Command for search service minimum config set up
+ * Command for service minimum config set up
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -67,27 +67,35 @@ class Init extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
-            $connection = $this->resourceConnection->getConnection();
-            $table = $connection->getTableName(PriceBookRepository::PRICES_BOOK_TABLE_NAME);
-
-            $select = $connection->select()
-                ->from($table)
-                ->where('id = ?', PriceBookRepository::DEFAULT_PRICE_BOOK_ID);
-            $result = $connection->fetchRow($select);
-            if (!$result) {
-                $connection->insert(
-                    $table,
-                    [
-                        'id' => 'default',
-                        'name' => 'Default'
-                    ]
-                );
-            }
+            $this->createDefaultPriceBook();
         } catch (\Throwable $exception) {
             $output->writeln('Installation failed: ' . $exception->getMessage());
             return Cli::RETURN_FAILURE;
         }
         $output->writeln('Installation complete');
         return Cli::RETURN_SUCCESS;
+    }
+
+    /**
+     * Save default price book to database if not exists
+     */
+    private function createDefaultPriceBook()
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $table = $connection->getTableName(PriceBookRepository::PRICES_BOOK_TABLE_NAME);
+
+        $select = $connection->select()
+            ->from($table)
+            ->where('id = ?', PriceBookRepository::DEFAULT_PRICE_BOOK_ID);
+        $result = $connection->fetchRow($select);
+        if (!$result) {
+            $connection->insert(
+                $table,
+                [
+                    'id' => PriceBookRepository::DEFAULT_PRICE_BOOK_ID,
+                    'name' => 'Default Price Book'
+                ]
+            );
+        }
     }
 }
