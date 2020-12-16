@@ -24,7 +24,7 @@ final class PriceBookScopeRequest implements PriceBookScopeRequestInterface
      * @var \Magento\PricingStorefrontApi\Api\Data\ScopeInterface
      */
     private $scope;
-
+    
     /**
      * @inheritdoc
      *
@@ -34,7 +34,7 @@ final class PriceBookScopeRequest implements PriceBookScopeRequestInterface
     {
         return $this->scope;
     }
-
+    
     /**
      * @inheritdoc
      *
