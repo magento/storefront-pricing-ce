@@ -1,1 +1,2 @@
 magento/module-pricing-storefront-api
+magento/module-pricing-storefront

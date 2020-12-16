@@ -9,4 +9,12 @@
     <preference for="Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface" type="Magento\PricingStorefront\Model\PricingService"/>
 
     <preference for="Magento\PricingStorefront\Model\PriceBookIdBuilderInterface" type="Magento\PricingStorefront\Model\PriceBookIdBuilder"/>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="pricing-init" xsi:type="object">Magento\PricingStorefront\Console\Command\Init</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

@@ -11,6 +11,8 @@ class PriceBookIdBuilder implements PriceBookIdBuilderInterface
 {
 
     /**
+     * Builds price book id
+     *
      * @ingeridoc
      * @param ScopeInterface $scope
      * @return string
@@ -18,9 +20,9 @@ class PriceBookIdBuilder implements PriceBookIdBuilderInterface
     public function build(ScopeInterface $scope): string
     {
         $websites = array_unique($scope->getWebsite());
-        sort($websites,SORT_NUMERIC);
+        sort($websites, SORT_NUMERIC);
         $customerGroups = array_unique($scope->getCustomerGroup());
-        sort($customerGroups,SORT_NUMERIC);
+        sort($customerGroups, SORT_NUMERIC);
 
         return sprintf(
             'w[%s]:cg[%s]',

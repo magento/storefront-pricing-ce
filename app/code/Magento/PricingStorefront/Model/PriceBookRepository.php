@@ -18,8 +18,8 @@ use Psr\Log\LoggerInterface;
  */
 class PriceBookRepository
 {
-    const PRICES_BOOK_TABLE_NAME = 'price_book';
-    const DEFAULT_PRICE_BOOK_ID = 'default';
+    public const PRICES_BOOK_TABLE_NAME = 'price_book';
+    public const DEFAULT_PRICE_BOOK_ID = 'default';
 
     /**
      * @var ResourceConnection
@@ -78,13 +78,15 @@ class PriceBookRepository
             ->where('id = ?', self::DEFAULT_PRICE_BOOK_ID);
         $priceBook = $connection->fetchRow($select);
         if (empty($priceBook)) {
-            throw new NoSuchEntityException(__('Default price book doesn\'t exist', $id));
+            throw new NoSuchEntityException(__('Default price book doesn\'t exist'));
         }
 
         return $priceBook;
     }
 
     /**
+     * Get price Book by scope
+     *
      * @param ScopeInterface $scope
      * @return array
      * @throws NoSuchEntityException
@@ -108,10 +110,10 @@ class PriceBookRepository
      * Create price book and save to DB
      *
      * @param PriceBookCreateRequestInterface $request
-     * @return string
+     * @return string|bool
      * @throws \ErrorException
      */
-    public function create(PriceBookCreateRequestInterface $request) :string
+    public function create(PriceBookCreateRequestInterface $request)
     {
         $priceBookId = $this->priceBookIdBuilder->build($request->getScope());
         $this->validatePriceBookUnique($request->getScope());
@@ -127,11 +129,18 @@ class PriceBookRepository
                 'customer_group_ids' => implode(',', $request->getScope()->getCustomerGroup())
             ]
         );
-        if ($result) {
-            return $priceBookId;
+        if (!$result) {
+            throw new \ErrorException(__('Price book wasn\'t created'));
         }
+        return $priceBookId;
     }
 
+    /**
+     * Delete price book by id
+     *
+     * @param string $id
+     * @return mixed
+     */
     public function delete(string $id)
     {
         $connection = $this->resourceConnection->getConnection();
@@ -150,8 +159,8 @@ class PriceBookRepository
     private function validatePriceBookUnique(ScopeInterface $scope) :void
     {
         $connection = $this->resourceConnection->getConnection();
-        $priceBook = $connection->fetchAll($this->buildQueryConditions('website_ids', $scope->getWebsite()));
-        foreach ($priceBook as $priceBook) {
+        $priceBooks = $connection->fetchAll($this->buildQueryConditions('website_ids', $scope->getWebsite()));
+        foreach ($priceBooks as $priceBook) {
             $priceBookCustomerGroups = explode(',', $priceBook['customer_group_ids']);
             foreach ($priceBookCustomerGroups as $priceBookCustomerGroup) {
                 if (in_array($priceBookCustomerGroup, $scope->getCustomerGroup())) {
@@ -184,6 +193,6 @@ class PriceBookRepository
         }
         return $this->resourceConnection->getConnection()->select()
             ->from($this->getPriceBookTable())
-            ->where(join(' OR ', $cond));
+            ->where(implode(' OR ', $cond));
     }
 }
