@@ -5,7 +5,7 @@
  */
 declare(strict_types=1);
 
-namespace Magento\PricingStorefront\Model;
+namespace Magento\PricingStorefront\Model\Storage;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;

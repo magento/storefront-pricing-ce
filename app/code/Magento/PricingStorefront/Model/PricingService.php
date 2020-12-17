@@ -22,6 +22,7 @@ use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
 use Magento\PricingStorefrontApi\Api\Data\ProductPriceArrayMapper;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
+use Magento\PricingStorefront\Model\Storage\PriceRepository;
 use Psr\Log\LoggerInterface;
 
 /**
