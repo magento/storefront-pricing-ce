@@ -15,17 +15,13 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputMapper;
-use Magento\PricingStorefrontApi\Api\Data\ProductPriceMapper;
-use Magento\PricingStorefrontApi\Api\Data\PriceMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
-use Magento\PricingStorefrontApi\Api\Data\AssignPricesRequestMapper;
 use Magento\PricingStorefrontApi\Api\Data\ProductPriceArrayMapper;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
-use Magento\PricingStorefrontApi\Proto\PriceBookResponse;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -60,24 +56,9 @@ class PricingService implements PriceBookServiceServerInterface
     private $priceBookStatusResponseMapper;
 
     /**
-     * @var ProductPriceMapper
-     */
-    private $productPriceMapper;
-
-    /**
-     * @var PriceMapper
-     */
-    private $priceMapper;
-
-    /**
      * @var GetPricesOutputMapper
      */
     private $getPricesOutputMapper;
-
-    /**
-     * @var AssignPricesRequestMapper
-     */
-    private $assignPricesRequestMapper;
 
     /**
      * @var ProductPriceArrayMapper
@@ -94,10 +75,7 @@ class PricingService implements PriceBookServiceServerInterface
      * @param PriceBookRepository $priceBookRepository
      * @param PriceBookResponseMapper $priceBookResponseMapper
      * @param PriceBookStatusResponseMapper $priceBookStatusResponseMapper
-     * @param ProductPriceMapper $productPriceMapper
-     * @param PriceMapper $priceMapper
      * @param GetPricesOutputMapper $getPricesOutputMapper
-     * @param AssignPricesRequestMapper $assignPricesRequestMapper
      * @param ProductPriceArrayMapper $productPriceArrayMapper
      * @param LoggerInterface $logger
      */
@@ -106,10 +84,7 @@ class PricingService implements PriceBookServiceServerInterface
         PriceBookRepository $priceBookRepository,
         PriceBookResponseMapper $priceBookResponseMapper,
         PriceBookStatusResponseMapper $priceBookStatusResponseMapper,
-        ProductPriceMapper $productPriceMapper,
-        PriceMapper $priceMapper,
         GetPricesOutputMapper $getPricesOutputMapper,
-        AssignPricesRequestMapper $assignPricesRequestMapper,
         ProductPriceArrayMapper $productPriceArrayMapper,
         LoggerInterface $logger
     ) {
@@ -117,10 +92,7 @@ class PricingService implements PriceBookServiceServerInterface
         $this->priceBookRepository = $priceBookRepository;
         $this->priceBookResponseMapper = $priceBookResponseMapper;
         $this->priceBookStatusResponseMapper = $priceBookStatusResponseMapper;
-        $this->productPriceMapper = $productPriceMapper;
-        $this->priceMapper = $priceMapper;
         $this->getPricesOutputMapper = $getPricesOutputMapper;
-        $this->assignPricesRequestMapper = $assignPricesRequestMapper;
         $this->productPriceArrayMapper = $productPriceArrayMapper;
         $this->logger = $logger;
     }
