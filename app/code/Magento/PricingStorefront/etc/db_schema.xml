@@ -10,13 +10,16 @@
     <table name="price_book" resource="default" engine="innodb"
            comment="Price Book">
         <column xsi:type="varchar" name="id" length="455" nullable="false" comment="Price Book ID"/>
-        <column xsi:type="text" name="parent_id" unsigned="true" nullable="true" identity="false" comment="Parent Price Book ID"/>
+        <column xsi:type="varchar" name="parent_id" length="455" nullable="true" comment="Parent Price Book ID"/>
         <column xsi:type="text" name="name" nullable="false" comment="Price Book Name"/>
         <column xsi:type="varchar" name="customer_group_ids" length="455" nullable="true"  comment="Customer Group IDs"/>
         <column xsi:type="varchar" name="website_ids" length="455" nullable="true" comment="Website IDs"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>
+        <index referenceId="PRICE_BOOK_PARENT_ID" indexType="btree">
+            <column name="parent_id"/>
+        </index>
     </table>
     <table name="prices" resource="default" engine="innodb"
            comment="Price Table">
