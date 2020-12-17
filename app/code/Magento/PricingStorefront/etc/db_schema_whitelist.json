@@ -13,6 +13,9 @@
             "PRIMARY": true,
             "PRICE_BOOK_ID": true,
             "PRICE_BOOK_WEBSITE_IDS_CUSTOMER_GROUP_IDS": true
+        },
+        "index": {
+            "PRICE_BOOK_PARENT_ID": true
         }
     },
     "prices": {
