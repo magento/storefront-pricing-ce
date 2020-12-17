@@ -9,6 +9,9 @@ namespace Magento\PricingStorefront\Model;
 
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class to perform domain logic fo price management.
+ */
 class PriceManagement
 {
     /**
@@ -61,6 +64,8 @@ class PriceManagement
      * @param array $price
      * @param string|null $parentId
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Throwable
      */
     public function assignPrice(string $bookId, array $price, ?string $parentId = null) : array
     {
@@ -179,12 +184,6 @@ class PriceManagement
                 $found = true;
                 $priceData = $priceData['price'] ?? $priceData['parent'];
                 continue;
-            }
-
-            if ($priceBookId === PriceBookRepository::DEFAULT_PRICE_BOOK_ID) {
-                throw new \RuntimeException(
-                    sprintf('Price for product %1 not found in default price book.', $productId)
-                );
             }
 
             if ($priceBookId === $parentId) {

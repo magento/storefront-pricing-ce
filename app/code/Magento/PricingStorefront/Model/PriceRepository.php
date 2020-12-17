@@ -9,7 +9,6 @@ namespace Magento\PricingStorefront\Model;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\PricingStorefrontApi\Api\Data\ProductPriceInterface;
 use Psr\Log\LoggerInterface;
 
 class PriceRepository

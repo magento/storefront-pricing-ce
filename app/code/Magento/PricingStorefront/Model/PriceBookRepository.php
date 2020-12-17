@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magento\PricingStorefront\Model;
 
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Select;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookCreateRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
@@ -20,6 +21,13 @@ class PriceBookRepository
 {
     public const PRICES_BOOK_TABLE_NAME = 'price_book';
     public const DEFAULT_PRICE_BOOK_ID = 'default';
+
+    public const KEY_ID = 'id';
+    public const KEY_PARENT_ID = 'parent_id';
+    public const KEY_NAME = 'name';
+    public const KEY_WEBSITE_IDS = 'website_ids';
+    public const KEY_CUSTOMER_GROUP_IDS = 'customer_group_ids';
+    public const ERR_MSG_PRICE_BOOK_NOT_EXIST = 'Price book with id "%1" doesn\'t exist';
 
     /**
      * @var ResourceConnection
@@ -58,27 +66,23 @@ class PriceBookRepository
      * @return array
      * @throws NoSuchEntityException
      */
-    public function getById(string $id = null): array
+    public function getById(?string $id = null): array
     {
-        $connection = $this->resourceConnection->getConnection();
-        if ($id !== null) {
-            $select = $connection->select()
-                ->from($this->getPriceBookTable())
-                ->where('id = ?', $id);
-
-            $priceBook = $connection->fetchRow($select);
-            if (!empty($priceBook)) {
-                return $priceBook;
-            }
-            $this->logger->warning(__('Price book with id "%1" doesn\'t exist. Fallback to default', $id));
+        if (!$id) {
+            $id = self::DEFAULT_PRICE_BOOK_ID;
         }
-        // Get default price book if no id was passed or as a fallback
+
+        $connection = $this->resourceConnection->getConnection();
         $select = $connection->select()
             ->from($this->getPriceBookTable())
-            ->where('id = ?', self::DEFAULT_PRICE_BOOK_ID);
+            ->where(self::KEY_ID . ' = ?', $id);
+
         $priceBook = $connection->fetchRow($select);
+
         if (empty($priceBook)) {
-            throw new NoSuchEntityException(__('Default price book doesn\'t exist'));
+            $errorMsg = __(self::ERR_MSG_PRICE_BOOK_NOT_EXIST, $id);
+            $this->logger->warning($errorMsg);
+            throw new NoSuchEntityException($errorMsg);
         }
 
         return $priceBook;
@@ -122,16 +126,18 @@ class PriceBookRepository
         $result = $connection->insert(
             $this->getPriceBookTable(),
             [
-                'id' => $priceBookId,
-                'name' => $request->getName(),
-                'parent_id' => $request->getParentId() ?? self::DEFAULT_PRICE_BOOK_ID,
-                'website_ids' => implode(',', $request->getScope()->getWebsite()),
-                'customer_group_ids' => implode(',', $request->getScope()->getCustomerGroup())
+                self::KEY_ID => $priceBookId,
+                self::KEY_NAME => $request->getName(),
+                self::KEY_PARENT_ID => $request->getParentId() ?? self::DEFAULT_PRICE_BOOK_ID,
+                self::KEY_WEBSITE_IDS => implode(',', $request->getScope()->getWebsite()),
+                self::KEY_CUSTOMER_GROUP_IDS => implode(',', $request->getScope()->getCustomerGroup())
             ]
         );
+
         if (!$result) {
             throw new \ErrorException(__('Price book wasn\'t created'));
         }
+
         return $priceBookId;
     }
 
@@ -144,9 +150,10 @@ class PriceBookRepository
     public function delete(string $id)
     {
         $connection = $this->resourceConnection->getConnection();
+
         return $connection->delete(
             $this->getPriceBookTable(),
-            ['id = ?' => $id]
+            [self::KEY_ID . ' = ?' => $id]
         );
     }
 
@@ -159,9 +166,13 @@ class PriceBookRepository
     private function validatePriceBookUnique(ScopeInterface $scope) :void
     {
         $connection = $this->resourceConnection->getConnection();
-        $priceBooks = $connection->fetchAll($this->buildQueryConditions('website_ids', $scope->getWebsite()));
+        $priceBooks = $connection->fetchAll(
+            $this->buildQueryConditions(self::KEY_WEBSITE_IDS, $scope->getWebsite())
+        );
+
         foreach ($priceBooks as $priceBook) {
-            $priceBookCustomerGroups = explode(',', $priceBook['customer_group_ids']);
+            $priceBookCustomerGroups = explode(',', $priceBook[self::KEY_CUSTOMER_GROUP_IDS]);
+
             foreach ($priceBookCustomerGroups as $priceBookCustomerGroup) {
                 if (in_array($priceBookCustomerGroup, $scope->getCustomerGroup())) {
                     throw new \ErrorException(
@@ -169,7 +180,7 @@ class PriceBookRepository
                             'Can\'t create Price Book with scope provided. ' .
                             'Customer Group %s is already presented in PriceBook with id: %s',
                             $priceBookCustomerGroup,
-                            $priceBook['id']
+                            $priceBook[self::KEY_ID]
                         )
                     );
                 }
@@ -182,15 +193,17 @@ class PriceBookRepository
      *
      * @param string $fieldName
      * @param array $ids
-     * @return \Magento\Framework\DB\Select
+     * @return Select
      */
-    private function buildQueryConditions(string $fieldName, array $ids): \Magento\Framework\DB\Select
+    private function buildQueryConditions(string $fieldName, array $ids): Select
     {
         $cond = [];
+
         foreach ($ids as $id) {
             $cond[] = $this->resourceConnection->getConnection()
                 ->quoteInto($fieldName . ' LIKE ?', "%{$id}%");
         }
+
         return $this->resourceConnection->getConnection()->select()
             ->from($this->getPriceBookTable())
             ->where(implode(' OR ', $cond));
