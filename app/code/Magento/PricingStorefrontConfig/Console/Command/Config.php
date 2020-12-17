@@ -41,24 +41,32 @@ class Config extends Command
     private $resourceConnection;
 
     /**
+     * @var DbUpgrade
+     */
+    private $dbUpgradeCommand;
+
+    /**
      * Installer constructor.
      *
      * @param Installer          $installer
+     * @param DbUpgrade          $dbUpgradeCommand
      * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         Installer $installer,
+        DbUpgrade $dbUpgradeCommand,
         ResourceConnection $resourceConnection
     ) {
         parent::__construct();
         $this->installer = $installer;
         $this->resourceConnection = $resourceConnection;
+        $this->dbUpgradeCommand = $dbUpgradeCommand;
     }
 
     /**
      * @inheritDoc
      */
-    protected function configure()
+    protected function configure() :void
     {
         $this->setName(self::COMMAND_NAME)
             ->setDescription(
@@ -77,13 +85,14 @@ class Config extends Command
      * @return int
      * @throws LocalizedException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->checkOptions($input->getOptions());
         try {
             $this->installer->install(
                 $input->getOptions()
             );
+            $this->dbUpgradeCommand->installSchema();
             $this->createDefaultPriceBook();
         } catch (\Throwable $exception) {
             $output->writeln('Installation failed: ' . $exception->getMessage());
@@ -99,7 +108,7 @@ class Config extends Command
      *
      * @return array
      */
-    private function getOptionsList()
+    private function getOptionsList() :array
     {
         return [
             new InputOption(
@@ -143,7 +152,7 @@ class Config extends Command
      * @return void
      * @throws LocalizedException
      */
-    private function checkOptions($options)
+    private function checkOptions(array $options) :void
     {
         $forgottenOptions = [];
         foreach ($options as $optionKey => $option) {
@@ -164,7 +173,7 @@ class Config extends Command
     /**
      * Save default price book to database if not exists
      */
-    private function createDefaultPriceBook()
+    private function createDefaultPriceBook() :void
     {
         $connection = $this->resourceConnection->getConnection();
         $table = $connection->getTableName(PriceBookRepository::PRICES_BOOK_TABLE_NAME);
