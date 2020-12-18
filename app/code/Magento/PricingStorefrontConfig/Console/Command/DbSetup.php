@@ -15,7 +15,6 @@ use Magento\Framework\Setup\Declaration\Schema\Diff\SchemaDiff;
 use Magento\Framework\Setup\Declaration\Schema\OperationsExecutor;
 use Magento\Framework\Setup\Declaration\Schema\SchemaConfigInterface;
 
-
 /**
  * Command for pricing service minimum config set up
  *
