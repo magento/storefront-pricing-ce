@@ -79,6 +79,8 @@ class PricingService implements PriceBookServiceServerInterface
      * @param GetPricesOutputMapper $getPricesOutputMapper
      * @param ProductPriceArrayMapper $productPriceArrayMapper
      * @param LoggerInterface $logger
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         PriceManagement $priceManagement,
@@ -180,6 +182,8 @@ class PricingService implements PriceBookServiceServerInterface
 
     /**
      * Service to assign prices to price book.
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      *
      * @param AssignPricesRequestInterface $request
      * @return PriceBookStatusResponseInterface

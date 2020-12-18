@@ -77,6 +77,9 @@ class PriceManagement
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Throwable
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function assignPrice(string $bookId, array $price, ?string $parentId = null) : array
     {
