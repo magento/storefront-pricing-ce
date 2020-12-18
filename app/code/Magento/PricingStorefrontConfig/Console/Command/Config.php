@@ -41,7 +41,7 @@ class Config extends Command
     private $resourceConnection;
 
     /**
-     * @var DbUpgrade
+     * @var DbSetup
      */
     private $dbUpgradeCommand;
 
@@ -49,12 +49,12 @@ class Config extends Command
      * Installer constructor.
      *
      * @param Installer          $installer
-     * @param DbUpgrade          $dbUpgradeCommand
+     * @param DbSetup            $dbUpgradeCommand
      * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         Installer $installer,
-        DbUpgrade $dbUpgradeCommand,
+        DbSetup $dbUpgradeCommand,
         ResourceConnection $resourceConnection
     ) {
         parent::__construct();

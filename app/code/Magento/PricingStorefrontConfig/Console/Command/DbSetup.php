@@ -21,7 +21,7 @@ use Magento\Framework\Setup\Declaration\Schema\SchemaConfigInterface;
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
-class DbUpgrade extends Command
+class DbSetup extends Command
 {
     /**
      * Command name
@@ -69,7 +69,7 @@ class DbUpgrade extends Command
     {
         $this->setName(self::COMMAND_NAME)
             ->setDescription(
-                'Upgrades db to'
+                'Set up DB tables for Pricing Service'
             );
 
         parent::configure();

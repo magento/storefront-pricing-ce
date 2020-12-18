@@ -10,7 +10,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="storefront-pricing-installer" xsi:type="object">Magento\PricingStorefrontConfig\Console\Command\Config</item>
-                <item name="storefront-upgrade-db-schema" xsi:type="object">Magento\PricingStorefrontConfig\Console\Command\DbUpgrade</item>
+                <item name="storefront-upgrade-db-schema" xsi:type="object">Magento\PricingStorefrontConfig\Console\Command\DbSetup</item>
             </argument>
         </arguments>
     </type>
