@@ -27,7 +27,6 @@ class PriceBookRepository
     public const KEY_NAME = 'name';
     public const KEY_WEBSITE_IDS = 'website_ids';
     public const KEY_CUSTOMER_GROUP_IDS = 'customer_group_ids';
-    public const ERR_MSG_PRICE_BOOK_NOT_EXIST = 'Price book with id "%1" doesn\'t exist';
 
     /**
      * @var ResourceConnection
@@ -80,7 +79,7 @@ class PriceBookRepository
         $priceBook = $connection->fetchRow($select);
 
         if (empty($priceBook)) {
-            $errorMsg = __(self::ERR_MSG_PRICE_BOOK_NOT_EXIST, $id);
+            $errorMsg = __('Price book with id "%1" doesn\'t exist', $id);
             $this->logger->warning($errorMsg);
             throw new NoSuchEntityException($errorMsg);
         }

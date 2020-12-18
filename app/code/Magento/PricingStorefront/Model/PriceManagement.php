@@ -160,8 +160,8 @@ class PriceManagement
      *
      * @param string $bookId
      * @param string $productId
-     * @param string|null $parentId
      * @param float $qty
+     * @param string|null $parentId
      * @return array
      */
     public function getPriceRow(string $bookId, string $productId, float $qty, ?string $parentId = null) : array
@@ -201,18 +201,21 @@ class PriceManagement
             }
 
             if ($priceBookId === $parentId) {
-                throw new \RuntimeException(sprintf('Price for product %1 not found.', $productId));
+                throw new \RuntimeException(__('Price for product %1 not found.', $productId));
             }
 
             $priceBookId = $parentId;
             $priceBookData = $this->priceBookRepository->getById($priceBookId);
-            $parentId = $priceBookData[PriceBookRepository::KEY_PARENT_ID] ?? PriceBookRepository::DEFAULT_PRICE_BOOK_ID;
+            $parentId = $priceBookData[PriceBookRepository::KEY_PARENT_ID] ??
+                PriceBookRepository::DEFAULT_PRICE_BOOK_ID;
         }
 
         return $priceData;
     }
 
     /**
+     * Get current price type
+     *
      * @return array
      */
     public function getPriceType(): array
@@ -221,6 +224,8 @@ class PriceManagement
     }
 
     /**
+     * Compare prices
+     *
      * @param array $price
      * @param array $secondPrice
      * @return bool
