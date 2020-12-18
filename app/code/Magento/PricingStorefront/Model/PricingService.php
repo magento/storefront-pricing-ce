@@ -15,17 +15,14 @@ use Magento\PricingStorefrontApi\Api\Data\PriceBookDeleteRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\GetPricesOutputMapper;
-use Magento\PricingStorefrontApi\Api\Data\ProductPriceMapper;
-use Magento\PricingStorefrontApi\Api\Data\PriceMapper;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookScopeRequestInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseInterface;
 use Magento\PricingStorefrontApi\Api\Data\PriceBookStatusResponseMapper;
 use Magento\PricingStorefrontApi\Api\Data\ScopeInterface;
-use Magento\PricingStorefrontApi\Api\Data\AssignPricesRequestMapper;
 use Magento\PricingStorefrontApi\Api\Data\ProductPriceArrayMapper;
 use Magento\PricingStorefrontApi\Api\Data\UnassignPricesRequestInterface;
 use Magento\PricingStorefrontApi\Api\PriceBookServiceServerInterface;
-use Magento\PricingStorefrontApi\Proto\PriceBookResponse;
+use Magento\PricingStorefront\Model\Storage\PriceRepository;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -37,6 +34,7 @@ class PricingService implements PriceBookServiceServerInterface
 {
     private const STATUS_SUCCESS = '0';
     private const STATUS_FAIL = '1';
+    private const STATUS_PARTIAL_SUCCESS = '2';
 
     /**
      * @var PriceManagement
@@ -59,24 +57,9 @@ class PricingService implements PriceBookServiceServerInterface
     private $priceBookStatusResponseMapper;
 
     /**
-     * @var ProductPriceMapper
-     */
-    private $productPriceMapper;
-
-    /**
-     * @var PriceMapper
-     */
-    private $priceMapper;
-
-    /**
      * @var GetPricesOutputMapper
      */
     private $getPricesOutputMapper;
-
-    /**
-     * @var AssignPricesRequestMapper
-     */
-    private $assignPricesRequestMapper;
 
     /**
      * @var ProductPriceArrayMapper
@@ -93,22 +76,18 @@ class PricingService implements PriceBookServiceServerInterface
      * @param PriceBookRepository $priceBookRepository
      * @param PriceBookResponseMapper $priceBookResponseMapper
      * @param PriceBookStatusResponseMapper $priceBookStatusResponseMapper
-     * @param ProductPriceMapper $productPriceMapper
-     * @param PriceMapper $priceMapper
      * @param GetPricesOutputMapper $getPricesOutputMapper
-     * @param AssignPricesRequestMapper $assignPricesRequestMapper
      * @param ProductPriceArrayMapper $productPriceArrayMapper
      * @param LoggerInterface $logger
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
     public function __construct(
         PriceManagement $priceManagement,
         PriceBookRepository $priceBookRepository,
         PriceBookResponseMapper $priceBookResponseMapper,
         PriceBookStatusResponseMapper $priceBookStatusResponseMapper,
-        ProductPriceMapper $productPriceMapper,
-        PriceMapper $priceMapper,
         GetPricesOutputMapper $getPricesOutputMapper,
-        AssignPricesRequestMapper $assignPricesRequestMapper,
         ProductPriceArrayMapper $productPriceArrayMapper,
         LoggerInterface $logger
     ) {
@@ -116,10 +95,7 @@ class PricingService implements PriceBookServiceServerInterface
         $this->priceBookRepository = $priceBookRepository;
         $this->priceBookResponseMapper = $priceBookResponseMapper;
         $this->priceBookStatusResponseMapper = $priceBookStatusResponseMapper;
-        $this->productPriceMapper = $productPriceMapper;
-        $this->priceMapper = $priceMapper;
         $this->getPricesOutputMapper = $getPricesOutputMapper;
-        $this->assignPricesRequestMapper = $assignPricesRequestMapper;
         $this->productPriceArrayMapper = $productPriceArrayMapper;
         $this->logger = $logger;
     }
@@ -207,17 +183,15 @@ class PricingService implements PriceBookServiceServerInterface
     /**
      * Service to assign prices to price book.
      *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     *
      * @param AssignPricesRequestInterface $request
      * @return PriceBookStatusResponseInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function assignPrices(AssignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
-        if (empty($request->getPriceBookId())) {
-            throw new \InvalidArgumentException('Price Book ID is not present in request.');
-        }
-
-        $statusCode = '0';
+        $statusCode = self::STATUS_SUCCESS;
 
         if (empty($request->getPrices())) {
             return $this->priceBookStatusResponseMapper->setData([
@@ -236,7 +210,7 @@ class PricingService implements PriceBookServiceServerInterface
         $parentId = $priceBookData[PriceBookRepository::KEY_PARENT_ID];
         $websites = $priceBookData[PriceBookRepository::KEY_WEBSITE_IDS];
         $customerGroups = $priceBookData[PriceBookRepository::KEY_CUSTOMER_GROUP_IDS];
-        $assignToDefault = $bookId === PriceBookRepository::DEFAULT_PRICE_BOOK_ID || (!$websites && !$customerGroups);
+        $assignToDefault = !$websites && !$customerGroups;
 
         if ($assignToDefault) {
             $bookId = PriceBookRepository::DEFAULT_PRICE_BOOK_ID;
@@ -248,6 +222,7 @@ class PricingService implements PriceBookServiceServerInterface
 
             try {
                 if (!$assignToDefault) {
+                    // if request to assign price to non-default book - check if default price set and throw exception
                     $this->priceManagement->getPriceRow(
                         PriceBookRepository::DEFAULT_PRICE_BOOK_ID,
                         $price->getEntityId(),
@@ -255,11 +230,9 @@ class PricingService implements PriceBookServiceServerInterface
                     );
                 }
 
-                // @TODO if price on default is set but not set for some of parent
-                // at the moment it will be set for specified book but parents prices will not be updated
                 $this->priceManagement->assignPrice($bookId, $priceArray, $parentId);
             } catch (\Throwable $e) {
-                $statusCode = 2;
+                $statusCode = self::STATUS_PARTIAL_SUCCESS;
                 $errors[] = [
                     'entity_id' => $price->getEntityId(),
                     'error' => $e->getMessage()
@@ -270,9 +243,7 @@ class PricingService implements PriceBookServiceServerInterface
         return $this->priceBookStatusResponseMapper->setData([
             'status' => [
                 'code' => $statusCode,
-                'message' => empty($errors)
-                    ? 'Prices was assigned with success.'
-                    : \json_encode($errors)
+                'message' => empty($errors) ? 'Prices was assigned with success.' : \json_encode($errors)
             ]
         ])->build();
     }
@@ -285,12 +256,11 @@ class PricingService implements PriceBookServiceServerInterface
      */
     public function unassignPrices(UnassignPricesRequestInterface $request): PriceBookStatusResponseInterface
     {
-        // @TODO if request is to remove prices for parent - do we need to remove them for all child???
         if (empty($request->getPriceBookId())) {
             throw new \InvalidArgumentException('Price Book ID is not present in request.');
         }
 
-        $statusCode = '0';
+        $statusCode = self::STATUS_SUCCESS;
 
         if (empty($request->getIds())) {
             return $this->priceBookStatusResponseMapper->setData([
@@ -305,7 +275,7 @@ class PricingService implements PriceBookServiceServerInterface
             $this->priceManagement->unassignPrices((string)$request->getPriceBookId(), $request->getIds());
             $statusMessage = 'Prices was successfully unassigned from price book.';
         } catch (\Throwable $e) {
-            $statusCode = 1;
+            $statusCode = self::STATUS_FAIL;
             $statusMessage = 'Unable to unassign prices from price book: ' . $e->getMessage();
             $this->logger->error($statusMessage, ['exception' => $e]);
         }
@@ -349,7 +319,7 @@ class PricingService implements PriceBookServiceServerInterface
                 );
             }
 
-            $prices[] = $this->productPriceMapper->setData($priceData)->build();
+            $prices[] = $priceData;
         }
 
         return $this->getPricesOutputMapper->setData(['prices' => $prices])->build();
@@ -366,7 +336,7 @@ class PricingService implements PriceBookServiceServerInterface
      * @param PriceBookCreateRequestInterface $request
      * @throws \InvalidArgumentException
      */
-    private function validatePriceBookCreateRequest( PriceBookCreateRequestInterface $request) :void
+    private function validatePriceBookCreateRequest(PriceBookCreateRequestInterface $request) :void
     {
         if (empty($request->getName())) {
             throw new \InvalidArgumentException('Price Book name is missing in the request');
@@ -378,6 +348,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook delete request validation
+     *
      * @param PriceBookDeleteRequestInterface $request
      * @throws \InvalidArgumentException
      */
@@ -389,6 +361,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook scope request validation
+     *
      * @param PriceBookScopeRequestInterface $request
      */
     private function validatePriceBookScopeRequest(PriceBookScopeRequestInterface $request): void
@@ -397,6 +371,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook scope validation
+     *
      * @param ScopeInterface|null $scope
      * @throws \InvalidArgumentException
      */

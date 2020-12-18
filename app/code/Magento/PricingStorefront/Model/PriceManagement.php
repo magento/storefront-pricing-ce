@@ -7,8 +7,12 @@ declare(strict_types=1);
 
 namespace Magento\PricingStorefront\Model;
 
+use Magento\PricingStorefront\Model\Storage\PriceRepository;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Class to perform domain logic fo price management.
+ */
 class PriceManagement
 {
     /**
@@ -56,11 +60,26 @@ class PriceManagement
 
     /**
      * Assign product price to price book.
+     * Prices are assigned by using following fallback logic:
+     * 1. If Price for specific price book exists - it will be updated.
+     * 2. If price for specific price book doesn't exists - price for nearest parent price book will be found:
+     * - if nearest parent's price the same as new price for such child book - nothing will be updated
+     * (price book will then use parent's price)
+     * - if nearest parent's price different from new price for such child book - price for such child will be inserted
+     * 3. If all price book parents have no assigned prices but price set for default book - price for such child
+     * will be inserted
+     * 4.Before proceeding assignment of prices - service will check if price for default price book is set - if not -
+     * exception will be thrown that default price for product should be set and price will not be assigned
      *
      * @param string $bookId
      * @param array $price
      * @param string|null $parentId
      * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Throwable
+     *
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function assignPrice(string $bookId, array $price, ?string $parentId = null) : array
     {
@@ -73,7 +92,7 @@ class PriceManagement
         $productId = $price[PriceRepository::KEY_PRODUCT_ID] ?? null;
 
         foreach ($price as $key => $value) {
-            if (in_array($key, $this->getPriceType())) {
+            if (in_array($key, $this->getPriceType(), true)) {
                 $priceUpdate[$key . '_' . $finalKey] = $value[$finalKey] ?? null;
                 $priceUpdate[$key . '_' . $regularKey] = $value[$regularKey] ?? null;
             }
@@ -179,12 +198,6 @@ class PriceManagement
                 $found = true;
                 $priceData = $priceData['price'] ?? $priceData['parent'];
                 continue;
-            }
-
-            if ($priceBookId === PriceBookRepository::DEFAULT_PRICE_BOOK_ID) {
-                throw new \RuntimeException(
-                    sprintf('Price for product %1 not found in default price book.', $productId)
-                );
             }
 
             if ($priceBookId === $parentId) {
