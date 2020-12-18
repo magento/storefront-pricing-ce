@@ -226,6 +226,8 @@ class PriceRepository
     }
 
     /**
+     * Get price types list
+     *
      * @return string[]
      */
     public function getPriceType(): array

@@ -310,7 +310,7 @@ class PricingService implements PriceBookServiceServerInterface
             } catch (\Throwable $e) {
                 $priceData = [PriceRepository::KEY_PRODUCT_ID => $productId];
                 $this->logger->error(
-                    sprintf(
+                    __(
                         'Unable to fetch price for product %1 in price book %2: %3',
                         $productId,
                         $priceBookId,
@@ -325,6 +325,12 @@ class PricingService implements PriceBookServiceServerInterface
         return $this->getPricesOutputMapper->setData(['prices' => $prices])->build();
     }
 
+    /**
+     * Get tier prices for product
+     *
+     * @param GetPricesRequestInterface $request
+     * @return GetPricesOutputInterface
+     */
     public function getTierPrices(GetPricesRequestInterface $request): GetPricesOutputInterface
     {
         // TODO: Implement getTierPrices() method.
