@@ -344,6 +344,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook delete request validation
+     *
      * @param PriceBookDeleteRequestInterface $request
      * @throws \InvalidArgumentException
      */
@@ -355,6 +357,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook scope request validation
+     *
      * @param PriceBookScopeRequestInterface $request
      */
     private function validatePriceBookScopeRequest(PriceBookScopeRequestInterface $request): void
@@ -363,6 +367,8 @@ class PricingService implements PriceBookServiceServerInterface
     }
 
     /**
+     * PriceBook scope validation
+     *
      * @param ScopeInterface|null $scope
      * @throws \InvalidArgumentException
      */
