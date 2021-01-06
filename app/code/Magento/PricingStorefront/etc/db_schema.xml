@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="price_book" resource="default" engine="innodb"
+           comment="Price Book">
+        <column xsi:type="varchar" name="id" length="455" nullable="false" comment="Price Book ID"/>
+        <column xsi:type="varchar" name="parent_id" length="455" nullable="true" comment="Parent Price Book ID"/>
+        <column xsi:type="text" name="name" nullable="false" comment="Price Book Name"/>
+        <column xsi:type="varchar" name="customer_group_ids" length="455" nullable="true"  comment="Customer Group IDs"/>
+        <column xsi:type="varchar" name="website_ids" length="455" nullable="true" comment="Website IDs"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="PRICE_BOOK_PARENT_ID" indexType="btree">
+            <column name="parent_id"/>
+        </index>
+    </table>
+    <table name="prices" resource="default" engine="innodb"
+           comment="Price Table">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="Price ID"/>
+        <column xsi:type="varchar" name="entity_id" length="455" nullable="false" comment="Product ID"/>
+        <column xsi:type="varchar" name="pricebook_id" length="455" nullable="false" comment="Price Book ID"/>
+        <column xsi:type="decimal" name="minimum_price_regular" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Minimum Regular Price"/>
+        <column xsi:type="decimal" name="minimum_price_final" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Minimum Final Price"/>
+        <column xsi:type="decimal" name="maximum_price_regular" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Maximum Regular Price"/>
+        <column xsi:type="decimal" name="maximum_price_final" scale="6" precision="20" unsigned="false" nullable="true"
+                comment="Maximum Final Price"/>
+        <column xsi:type="decimal" name="qty" scale="4" precision="12" unsigned="false" nullable="false" default="0"
+                comment="Qty"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="UNIQUE_PB_ID_P_ID_QTY">
+            <column name="entity_id"/>
+            <column name="pricebook_id"/>
+            <column name="qty"/>
+        </constraint>
+    </table>
+</schema>

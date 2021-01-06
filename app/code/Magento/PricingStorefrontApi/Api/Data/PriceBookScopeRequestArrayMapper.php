@@ -47,9 +47,9 @@ final class PriceBookScopeRequestArrayMapper
     public function convertToArray(PriceBookScopeRequest $dto)
     {
         $result = [];
-        if ($dto->getScopes() !== null) {
-            $result["scopes"] = $this->objectManager->get(\Magento\PricingStorefrontApi\Api\Data\ScopeArrayMapper::class)
-                ->convertToArray($dto->getScopes());
+        if ($dto->getScope() !== null) {
+            $result["scope"] = $this->objectManager->get(\Magento\PricingStorefrontApi\Api\Data\ScopeArrayMapper::class)
+                ->convertToArray($dto->getScope());
         }
         return $result;
     }

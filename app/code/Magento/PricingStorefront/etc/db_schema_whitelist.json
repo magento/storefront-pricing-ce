@@ -1,0 +1,44 @@
+{
+    "price_book": {
+        "column": {
+            "row_id": true,
+            "id": true,
+            "parent_id": true,
+            "name": true,
+            "customer_group_ids": true,
+            "website_ids": true,
+            "scopes": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRICE_BOOK_ID": true,
+            "PRICE_BOOK_WEBSITE_IDS_CUSTOMER_GROUP_IDS": true
+        },
+        "index": {
+            "PRICE_BOOK_PARENT_ID": true
+        }
+    },
+    "prices": {
+        "column": {
+            "id": true,
+            "product_id": true,
+            "pricebook_row_id": true,
+            "regular_price": true,
+            "price": true,
+            "maximum_regular_price": true,
+            "maximum_price": true,
+            "qty": true,
+            "entity_id": true,
+            "pricebook_id": true,
+            "minimum_price_regular": true,
+            "minimum_price_final": true,
+            "maximum_price_regular": true,
+            "maximum_price_final": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PRICES_PRICEBOOK_ROW_ID_PRICE_BOOK_ROW_ID": true,
+            "PRICES_ENTITY_ID_PRICEBOOK_ID_QTY": true
+        }
+    }
+}
