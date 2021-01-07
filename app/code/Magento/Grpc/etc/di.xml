@@ -9,10 +9,9 @@
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="storefront-pricing-installer" xsi:type="object">Magento\PricingStorefrontConfig\Console\Command\Config</item>
-                <item name="storefront-upgrade-db-schema" xsi:type="object">Magento\PricingStorefrontConfig\Console\Command\DbSetup</item>
+                <item name="proto-marshal" xsi:type="object">Magento\Grpc\Console\Command\ProtoMarshalCommand</item>
+                <item name="grpc-init" xsi:type="object">Magento\Grpc\Console\Command\Grpc</item>
             </argument>
         </arguments>
     </type>
-    <preference for="Magento\Framework\App\Request\PathInfoProcessorInterface" type="Magento\PricingStorefrontConfig\Framework\App\Request\DefaultPathInfoProcessor" />
 </config>

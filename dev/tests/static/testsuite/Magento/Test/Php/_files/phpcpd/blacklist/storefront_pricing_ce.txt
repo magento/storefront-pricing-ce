@@ -1,2 +1,3 @@
 Magento/PricingStorefrontApi
 Magento/PricingStorefrontConfig/Model
+storefront_pricing_autoload.php
