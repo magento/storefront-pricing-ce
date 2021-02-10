@@ -22,7 +22,7 @@
         "colinmollenhour/php-redis-session-abstract": "^1.4",
         "grpc/grpc": "^1.27",
         "spiral/php-grpc": "^1.1",
-        "magento/module-grpc": "dev-master"
+        "magento/module-grpc": "dev-main"
     },
     "autoload": {
         "psr-4": {
