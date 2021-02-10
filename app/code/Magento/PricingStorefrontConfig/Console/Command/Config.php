@@ -9,7 +9,6 @@ namespace Magento\PricingStorefrontConfig\Console\Command;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\PricingStorefront\Model\PriceBookRepository;
 use Magento\PricingStorefrontConfig\Model\Installer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,26 +40,16 @@ class Config extends Command
     private $resourceConnection;
 
     /**
-     * @var DbSetup
-     */
-    private $dbUpgradeCommand;
-
-    /**
-     * Installer constructor.
-     *
-     * @param Installer          $installer
-     * @param DbSetup            $dbUpgradeCommand
+     * @param Installer $installer
      * @param ResourceConnection $resourceConnection
      */
     public function __construct(
         Installer $installer,
-        DbSetup $dbUpgradeCommand,
         ResourceConnection $resourceConnection
     ) {
         parent::__construct();
         $this->installer = $installer;
         $this->resourceConnection = $resourceConnection;
-        $this->dbUpgradeCommand = $dbUpgradeCommand;
     }
 
     /**
@@ -92,13 +81,11 @@ class Config extends Command
             $this->installer->install(
                 $input->getOptions()
             );
-            $this->dbUpgradeCommand->installSchema();
-            $this->createDefaultPriceBook();
         } catch (\Throwable $exception) {
             $output->writeln('Installation failed: ' . $exception->getMessage());
             return Cli::RETURN_FAILURE;
         }
-        $output->writeln('Installation complete');
+        $output->writeln('Config initialization complete');
 
         return Cli::RETURN_SUCCESS;
     }
@@ -166,29 +153,6 @@ class Config extends Command
                     'Please provide next options: '.PHP_EOL.'%1',
                     implode(',' . PHP_EOL, $forgottenOptions)
                 )
-            );
-        }
-    }
-
-    /**
-     * Save default price book to database if not exists
-     */
-    private function createDefaultPriceBook() :void
-    {
-        $connection = $this->resourceConnection->getConnection();
-        $table = $connection->getTableName(PriceBookRepository::PRICES_BOOK_TABLE_NAME);
-
-        $select = $connection->select()
-            ->from($table)
-            ->where('id = ?', PriceBookRepository::DEFAULT_PRICE_BOOK_ID);
-        $result = $connection->fetchRow($select);
-        if (!$result) {
-            $connection->insert(
-                $table,
-                [
-                    'id' => PriceBookRepository::DEFAULT_PRICE_BOOK_ID,
-                    'name' => 'Default Price Book'
-                ]
             );
         }
     }
