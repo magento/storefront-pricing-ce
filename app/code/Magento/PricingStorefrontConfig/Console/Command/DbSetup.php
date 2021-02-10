@@ -8,7 +8,6 @@ namespace Magento\PricingStorefrontConfig\Console\Command;
 
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Console\Cli;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\PricingStorefront\Model\PriceBookRepository;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,7 +17,7 @@ use Magento\Framework\Setup\Declaration\Schema\OperationsExecutor;
 use Magento\Framework\Setup\Declaration\Schema\SchemaConfigInterface;
 
 /**
- * Command for pricing service minimum config set up
+ * Command for pricing service DB setup. Creates base tables and default pricebook.
  *
  * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
@@ -121,6 +120,8 @@ class DbSetup extends Command
 
     /**
      * Save default price book to database if not exists
+     *
+     * @return void
      */
     private function createDefaultPriceBook() :void
     {
