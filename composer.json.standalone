@@ -15,18 +15,14 @@
         "magento-root-dir": "./"
     },
     "require": {
-        "magento/framework": "^103.0",
-        "colinmollenhour/cache-backend-file": "^1.4",
-        "colinmollenhour/cache-backend-redis": "^1.14",
-        "colinmollenhour/credis": "1.11.1",
-        "colinmollenhour/php-redis-session-abstract": "^1.4",
-        "grpc/grpc": "^1.27",
-        "spiral/php-grpc": "^1.1",
-        "magento/module-grpc": "dev-master"
+        "magento/module-storefront-framework": "*",
+        "magento/module-storefront-cache": "*",
+        "magento/module-storefront-di": "*",
+        "magento/module-storefront-deploy": "*",
+        "magento/module-grpc": "dev-main"
     },
     "autoload": {
         "psr-4": {
-            "Magento\\Framework\\": "vendor/magento/framework/",
             "Magento\\": "app/code/Magento/"
         },
         "psr-0": {
